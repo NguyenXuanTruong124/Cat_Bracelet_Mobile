@@ -4,6 +4,7 @@ class Product {
   final int basePrice;
   final String? thumbnail;
   final String? description;
+  final String status;
 
   Product({
     required this.id,
@@ -11,27 +12,17 @@ class Product {
     required this.basePrice,
     this.thumbnail,
     this.description,
+    required this.status,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
-    // Handling basePrice which could be int or double from JSON
-    int parsedPrice = 0;
-    if (json['basePrice'] != null) {
-      if (json['basePrice'] is int) {
-        parsedPrice = json['basePrice'];
-      } else if (json['basePrice'] is double) {
-        parsedPrice = (json['basePrice'] as double).toInt();
-      } else if (json['basePrice'] is String) {
-        parsedPrice = int.tryParse(json['basePrice']) ?? 0;
-      }
-    }
-
     return Product(
       id: json['id'] ?? '',
       productName: json['productName'] ?? 'Sản phẩm không tên',
-      basePrice: parsedPrice,
+      basePrice: (double.tryParse(json['basePrice'].toString()) ?? 0).toInt(),
       thumbnail: json['thumbnail'],
       description: json['description'],
+      status: json['status'] ?? 'INACTIVE',
     );
   }
 }

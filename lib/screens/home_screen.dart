@@ -74,76 +74,119 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final isMobile = size.width < 600;
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
             backgroundColor: _wine,
-            expandedHeight: 80,
+            expandedHeight: isMobile ? 70 : 85,
             floating: true,
             pinned: true,
-            title: const Text(
+
+            leading: Padding(
+              padding: const EdgeInsets.only(left: 12),
+              child: CircleAvatar(
+                backgroundColor: _gold.withOpacity(0.8),
+                child: const Icon(
+                  Icons.person,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+
+            title: Text(
               'Cát Bracelet',
               style: TextStyle(
                 fontFamily: 'serif',
                 fontWeight: FontWeight.bold,
                 color: _gold,
+                fontSize: isMobile ? 20 : 24,
               ),
             ),
+
             centerTitle: true,
+
             actions: [
-              Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: CircleAvatar(
-                  backgroundColor: _gold.withOpacity(0.8),
-                  child: const Icon(Icons.person, color: Colors.white),
-                ),
-              ),
               TextButton(
                 onPressed: () {
                   Navigator.pushReplacementNamed(context, '/');
                 },
-                child: const Text(
+                child: Text(
                   'Đăng xuất',
-                  style: TextStyle(color: Colors.white),
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: isMobile ? 13 : 15,
+                  ),
                 ),
               ),
             ],
           ),
 
-          // Hero Section
-          SliverToBoxAdapter(child: HomeSections.buildHeroSection()),
+          SliverToBoxAdapter(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: 1200,
+                ),
+                child: HomeSections.buildHeroSection(),
+              ),
+            ),
+          ),
 
-          // Bộ sưu tập (đưa lên gần đầu)
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 24),
+              padding: EdgeInsets.symmetric(
+                vertical: isMobile ? 20 : 30,
+                horizontal: isMobile ? 16 : 32,
+              ),
               child: Column(
                 children: [
-                  const Text(
+                  Text(
                     'Bộ sưu tập nổi bật',
+                    textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 24,
+                      fontSize: isMobile ? 22 : 28,
                       fontFamily: 'serif',
                       fontWeight: FontWeight.bold,
                       color: _wine,
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _wine,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    ),
-                    onPressed: () {
-                      Navigator.pushReplacementNamed(context, '/collection');
-                    },
-                    child: const Text(
-                      'Xem bộ sưu tập',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+
+                  SizedBox(
+                    height: isMobile ? 12 : 20,
+                  ),
+
+                  SizedBox(
+                    width: isMobile ? double.infinity : 260,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _wine,
+                        foregroundColor: Colors.white,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isMobile ? 20 : 24,
+                          vertical: isMobile ? 14 : 16,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.pushReplacementNamed(
+                          context,
+                          '/collection',
+                        );
+                      },
+                      child: Text(
+                        'Xem bộ sưu tập',
+                        style: TextStyle(
+                          fontSize: isMobile ? 14 : 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -151,11 +194,49 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          // Các section khác
-          SliverToBoxAdapter(child: HomeSections.buildFeaturesSection()),
-          SliverToBoxAdapter(child: HomeSections.buildAboutSection()),
-          SliverToBoxAdapter(child: HomeSections.buildTestimonialsSection()),
-          SliverToBoxAdapter(child: HomeSections.buildFooter()),
+          SliverToBoxAdapter(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: 1200,
+                ),
+                child: HomeSections.buildFeaturesSection(),
+              ),
+            ),
+          ),
+
+          SliverToBoxAdapter(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: 1200,
+                ),
+                child: HomeSections.buildAboutSection(),
+              ),
+            ),
+          ),
+
+          SliverToBoxAdapter(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: 1200,
+                ),
+                child: HomeSections.buildTestimonialsSection(),
+              ),
+            ),
+          ),
+
+          SliverToBoxAdapter(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: 1200,
+                ),
+                child: HomeSections.buildFooter(),
+              ),
+            ),
+          ),
         ],
       ),
     );

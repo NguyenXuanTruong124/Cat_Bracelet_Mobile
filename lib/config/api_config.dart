@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ApiConfig {
   static String getBaseUrl(BuildContext context) {
-    String baseUrl = 'http://localhost:3000';
+    String baseUrl = dotenv.env['BASE_URL'] ?? '';
     try {
       if (Theme.of(context).platform == TargetPlatform.android) {
-        baseUrl = 'http://10.0.2.2:3000';
+        dotenv.env['BASE_URL'];
       }
     } catch (_) {}
     return baseUrl;
