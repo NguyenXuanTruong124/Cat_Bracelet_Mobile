@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 
 import '../config/api_config.dart';
 import '../models/product.dart';
-
+import 'home_screen.dart';
 class CollectionScreen extends StatefulWidget {
   const CollectionScreen({super.key});
 
@@ -113,17 +113,36 @@ class _CollectionScreenState extends State<CollectionScreen> {
         ),
         backgroundColor: _wine,
         foregroundColor: Colors.white,
+
+        // Nút back bên trái
         leading: IconButton(
-          icon: const Icon(Icons.shopping_cart),
-          tooltip: 'Giỏ hàng',
+          icon: const Icon(Icons.arrow_back),
+          tooltip: 'Quay lại',
           onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Đi tới giỏ hàng'),
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const HomeScreen(),
               ),
+                  (route) => false,
             );
           },
         ),
+
+        // Nút giỏ hàng bên phải
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.shopping_cart),
+            tooltip: 'Giỏ hàng',
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Đi tới giỏ hàng'),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: _isLoading
           ? const Center(
