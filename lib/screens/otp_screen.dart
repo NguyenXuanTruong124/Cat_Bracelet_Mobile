@@ -37,20 +37,19 @@ class _OtpScreenState extends State<OtpScreen> {
     try {
       final baseUrl = ApiConfig.getBaseUrl(context);
       final url = Uri.parse('$baseUrl/user/verify-otp');
-      
+
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': email,
-          'otp': otp,
-        }),
+        body: jsonEncode({'email': email, 'otp': otp}),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Xác thực thành công! Vui lòng đăng nhập.')),
+          const SnackBar(
+            content: Text('Xác thực thành công! Vui lòng đăng nhập.'),
+          ),
         );
         Navigator.pushReplacementNamed(context, '/'); // Go back to login
       } else {
@@ -64,9 +63,9 @@ class _OtpScreenState extends State<OtpScreen> {
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi kết nối tới Server: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Lỗi kết nối tới Server: $e')));
     } finally {
       if (mounted) {
         setState(() {
@@ -85,7 +84,8 @@ class _OtpScreenState extends State<OtpScreen> {
   @override
   Widget build(BuildContext context) {
     // Nhận email từ tham số điều hướng
-    final String email = ModalRoute.of(context)?.settings.arguments as String? ?? '';
+    final String email =
+        ModalRoute.of(context)?.settings.arguments as String? ?? '';
 
     return Scaffold(
       appBar: AppBar(
@@ -110,7 +110,10 @@ class _OtpScreenState extends State<OtpScreen> {
             builder: (context, constraints) {
               return Center(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 24,
+                  ),
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 400),
                     child: Container(
@@ -157,7 +160,10 @@ class _OtpScreenState extends State<OtpScreen> {
                             decoration: BoxDecoration(
                               color: OtpScreen._softRose,
                               borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: OtpScreen._roseBorder, width: 1.5),
+                              border: Border.all(
+                                color: OtpScreen._roseBorder,
+                                width: 1.5,
+                              ),
                             ),
                             child: TextField(
                               controller: _otpController,
@@ -179,16 +185,22 @@ class _OtpScreenState extends State<OtpScreen> {
                           ),
                           const SizedBox(height: 32),
                           GestureDetector(
-                            onTap: _isLoading ? null : () => _handleVerifyOtp(email),
+                            onTap: _isLoading
+                                ? null
+                                : () => _handleVerifyOtp(email),
                             child: Container(
                               height: 56,
                               decoration: BoxDecoration(
-                                color: _isLoading ? OtpScreen._wine.withValues(alpha: 0.6) : OtpScreen._wine,
+                                color: _isLoading
+                                    ? OtpScreen._wine.withValues(alpha: 0.6)
+                                    : OtpScreen._wine,
                                 borderRadius: BorderRadius.circular(16),
                                 boxShadow: [
                                   if (!_isLoading)
                                     BoxShadow(
-                                      color: OtpScreen._wine.withValues(alpha: 0.22),
+                                      color: OtpScreen._wine.withValues(
+                                        alpha: 0.22,
+                                      ),
                                       blurRadius: 15,
                                       offset: const Offset(0, 8),
                                     ),

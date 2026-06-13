@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../config/api_config.dart';
+import '../models/user_session.dart';
 import 'package:flutter/gestures.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -38,23 +39,24 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      // LƯU Ý: 
+      // LƯU Ý:
       // - Nếu chạy app trên máy ảo Android (Emulator), phải dùng 10.0.2.2 thay cho localhost.
       // - Nếu chạy trên thiết bị thật, phải dùng địa chỉ IP LAN của máy tính (ví dụ 192.168.1.x).
       // - Đường dẫn thường có dạng /api/user/login, vui lòng sửa lại đúng với route API thực tế của bạn.
       final baseUrl = ApiConfig.getBaseUrl(context);
       final url = Uri.parse('$baseUrl/user/login');
-      
+
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': email,
-          'password': password,
-        }),
+        body: jsonEncode({'email': email, 'password': password}),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map<String, dynamic>) {
+          UserSession.setFromLogin(decoded);
+        }
         if (!mounted) return;
         // Đăng nhập thành công, chuyển sang trang Home
         Navigator.pushReplacementNamed(context, '/home');
@@ -69,9 +71,9 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi kết nối tới Server: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Lỗi kết nối tới Server: $e')));
     } finally {
       if (mounted) {
         setState(() {
@@ -102,7 +104,9 @@ class _LoginScreenState extends State<LoginScreen> {
         child: SafeArea(
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final horizontalPadding = constraints.maxWidth < 380 ? 22.0 : 34.0;
+              final horizontalPadding = constraints.maxWidth < 380
+                  ? 22.0
+                  : 34.0;
               final panelRadius = constraints.maxWidth < 380 ? 34.0 : 48.0;
 
               return Center(
@@ -287,7 +291,9 @@ class _LoginFormState extends State<_LoginForm> {
               });
             },
             child: Icon(
-              _isPasswordVisible ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+              _isPasswordVisible
+                  ? Icons.visibility_outlined
+                  : Icons.visibility_off_outlined,
               color: LoginScreen._roseBorder.withValues(alpha: 0.95),
               size: 30,
             ),
@@ -386,7 +392,9 @@ class _PrimaryButton extends StatelessWidget {
       child: Container(
         height: 70,
         decoration: BoxDecoration(
-          color: isLoading ? LoginScreen._wine.withValues(alpha: 0.6) : LoginScreen._wine,
+          color: isLoading
+              ? LoginScreen._wine.withValues(alpha: 0.6)
+              : LoginScreen._wine,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             if (!isLoading)

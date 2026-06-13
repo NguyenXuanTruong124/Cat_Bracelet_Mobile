@@ -44,11 +44,16 @@ class HomeSections {
             ),
           ),
           const SizedBox(height: 32),
-          Image.asset('assets/images/home_ne.png', height: 250, fit: BoxFit.contain,
+          Image.asset(
+            'assets/images/home_ne.png',
+            height: 250,
+            fit: BoxFit.contain,
             errorBuilder: (context, error, stackTrace) => Container(
               height: 250,
               color: softRose,
-              child: const Center(child: Icon(Icons.image, size: 50, color: wine)),
+              child: const Center(
+                child: Icon(Icons.image, size: 50, color: wine),
+              ),
             ),
           ),
           const SizedBox(height: 32),
@@ -58,9 +63,14 @@ class HomeSections {
               backgroundColor: wine,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
+              ),
             ),
-            child: const Text('NHẬN PHONG ĐỘ NGAY', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            child: const Text(
+              'NHẬN PHONG ĐỘ NGAY',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
           ),
         ],
       ),
@@ -75,24 +85,52 @@ class HomeSections {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildFeatureItem(Icons.diamond_outlined, 'ĐÁ TỰ NHIÊN', '100% tự nhiên'),
-          _buildFeatureItem(Icons.design_services_outlined, 'THIẾT KẾ', 'Độc bản'),
-          _buildFeatureItem(Icons.handshake_outlined, 'TƯƠNG THÍCH', 'Hợp cung mệnh'),
+          _buildFeatureItem(
+            Icons.diamond_outlined,
+            'ĐÁ TỰ NHIÊN',
+            '100% tự nhiên',
+          ),
+          _buildFeatureItem(
+            Icons.design_services_outlined,
+            'THIẾT KẾ',
+            'Độc bản',
+          ),
+          _buildFeatureItem(
+            Icons.handshake_outlined,
+            'TƯƠNG THÍCH',
+            'Hợp cung mệnh',
+          ),
           _buildFeatureItem(Icons.wb_sunny_outlined, 'NĂNG LƯỢNG', 'Tích cực'),
         ],
       ),
     );
   }
 
-  static Widget _buildFeatureItem(IconData icon, String title, String subtitle) {
+  static Widget _buildFeatureItem(
+    IconData icon,
+    String title,
+    String subtitle,
+  ) {
     return Expanded(
       child: Column(
         children: [
           Icon(icon, color: gold, size: 40),
           const SizedBox(height: 12),
-          Text(title, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: wine)),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+              color: wine,
+            ),
+          ),
           const SizedBox(height: 4),
-          Text(subtitle, textAlign: TextAlign.center, style: const TextStyle(fontSize: 11, color: taupe)),
+          Text(
+            subtitle,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 11, color: taupe),
+          ),
         ],
       ),
     );
@@ -107,15 +145,23 @@ class HomeSections {
           const Text(
             'Bạn có đang gặp những điều này?',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 24, fontFamily: 'serif', fontWeight: FontWeight.bold, color: wine),
+            style: TextStyle(
+              fontSize: 24,
+              fontFamily: 'serif',
+              fontWeight: FontWeight.bold,
+              color: wine,
+            ),
           ),
           const SizedBox(height: 24),
           ClipRRect(
             borderRadius: BorderRadius.circular(16),
-            child: Image.asset('assets/images/about_2.png', height: 200, width: double.infinity, fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => Container(
-                height: 200, width: double.infinity, color: taupe,
-              ),
+            child: Image.asset(
+              'assets/images/about_2.png',
+              height: 200,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) =>
+                  Container(height: 200, width: double.infinity, color: taupe),
             ),
           ),
           const SizedBox(height: 24),
@@ -140,7 +186,15 @@ class HomeSections {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Cát là gì?', style: TextStyle(fontSize: 26, fontFamily: 'serif', fontWeight: FontWeight.bold, color: wine)),
+                const Text(
+                  'Cát là gì?',
+                  style: TextStyle(
+                    fontSize: 26,
+                    fontFamily: 'serif',
+                    fontWeight: FontWeight.bold,
+                    color: wine,
+                  ),
+                ),
                 const SizedBox(height: 16),
                 const Text(
                   'Cát Bracelet là thương hiệu vòng tay phong thuỷ hiện đại kết hợp tính ứng dụng cao và ý nghĩa tinh thần sâu sắc.',
@@ -153,7 +207,7 @@ class HomeSections {
                     _buildSmallIcon(Icons.favorite_border, 'CHÂN THẬT'),
                     _buildSmallIcon(Icons.sync, 'CÂN BẰNG'),
                   ],
-                )
+                ),
               ],
             ),
           ),
@@ -162,11 +216,14 @@ class HomeSections {
             flex: 1,
             child: ClipRRect(
               borderRadius: BorderRadius.circular(100), // Circle-ish
-              child: Image.asset('assets/images/vongtay.png', fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(color: softRose, height: 150),
+              child: Image.asset(
+                'assets/images/vongtay.png',
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) =>
+                    Container(color: softRose, height: 150),
               ),
             ),
-          )
+          ),
         ],
       ),
     );
@@ -179,7 +236,14 @@ class HomeSections {
         children: [
           Icon(icon, color: gold, size: 24),
           const SizedBox(height: 4),
-          Text(text, style: const TextStyle(fontSize: 10, color: wine, fontWeight: FontWeight.bold)),
+          Text(
+            text,
+            style: const TextStyle(
+              fontSize: 10,
+              color: wine,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ],
       ),
     );
@@ -191,7 +255,15 @@ class HomeSections {
       padding: const EdgeInsets.all(24),
       child: Column(
         children: [
-          const Text('Vòng Cát hoạt động như thế nào?', style: TextStyle(fontSize: 24, fontFamily: 'serif', fontWeight: FontWeight.bold, color: wine)),
+          const Text(
+            'Vòng Cát hoạt động như thế nào?',
+            style: TextStyle(
+              fontSize: 24,
+              fontFamily: 'serif',
+              fontWeight: FontWeight.bold,
+              color: wine,
+            ),
+          ),
           const SizedBox(height: 32),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -203,7 +275,7 @@ class HomeSections {
                 _buildStepItem('04', 'ĐỒNG HÀNH', 'assets/images/vongtay.png'),
               ],
             ),
-          )
+          ),
         ],
       ),
     );
@@ -216,13 +288,33 @@ class HomeSections {
       child: Column(
         children: [
           ClipOval(
-            child: Image.asset(imgPath, height: 80, width: 80, fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => Container(height: 80, width: 80, color: softRose),
+            child: Image.asset(
+              imgPath,
+              height: 80,
+              width: 80,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) =>
+                  Container(height: 80, width: 80, color: softRose),
             ),
           ),
           const SizedBox(height: 12),
-          Text(step, style: const TextStyle(color: gold, fontWeight: FontWeight.bold, fontSize: 16)),
-          Text(title, style: const TextStyle(color: wine, fontWeight: FontWeight.bold, fontSize: 13), textAlign: TextAlign.center),
+          Text(
+            step,
+            style: const TextStyle(
+              color: gold,
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
+          Text(
+            title,
+            style: const TextStyle(
+              color: wine,
+              fontWeight: FontWeight.bold,
+              fontSize: 13,
+            ),
+            textAlign: TextAlign.center,
+          ),
         ],
       ),
     );
@@ -235,9 +327,26 @@ class HomeSections {
       padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
       child: Column(
         children: [
-          const Text('be you, be energy', style: TextStyle(fontFamily: 'serif', fontSize: 32, fontStyle: FontStyle.italic, color: Colors.white)),
+          const Text(
+            'be you, be energy',
+            style: TextStyle(
+              fontFamily: 'serif',
+              fontSize: 32,
+              fontStyle: FontStyle.italic,
+              color: Colors.white,
+            ),
+          ),
           const SizedBox(height: 8),
-          const Text('SỐNG ĐÚNG VỚI BẢN THÂN - LÀM CHỦ NĂNG LƯỢNG TÍCH CỰC', textAlign: TextAlign.center, style: TextStyle(color: gold, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+          const Text(
+            'SỐNG ĐÚNG VỚI BẢN THÂN - LÀM CHỦ NĂNG LƯỢNG TÍCH CỰC',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: gold,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.2,
+            ),
+          ),
         ],
       ),
     );
@@ -249,18 +358,35 @@ class HomeSections {
       padding: const EdgeInsets.all(24),
       child: Column(
         children: [
-          const Text('Khách hàng nói gì về Cát', style: TextStyle(fontSize: 24, fontFamily: 'serif', fontWeight: FontWeight.bold, color: wine)),
+          const Text(
+            'Khách hàng nói gì về Cát',
+            style: TextStyle(
+              fontSize: 24,
+              fontFamily: 'serif',
+              fontWeight: FontWeight.bold,
+              color: wine,
+            ),
+          ),
           const SizedBox(height: 24),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                _buildTestimonialCard('Ngọc Anh', '"Mình đeo vòng Cát An Nhiên và cảm thấy tĩnh tâm hẳn."'),
-                _buildTestimonialCard('Thu Trang', '"Từ khi mang vòng, cảm giác năng lượng trong mình dồi dào hơn."'),
-                _buildTestimonialCard('Đình Khang', '"Kiểu dáng rất đẹp và nam tính, không hề yểu điệu."'),
+                _buildTestimonialCard(
+                  'Ngọc Anh',
+                  '"Mình đeo vòng Cát An Nhiên và cảm thấy tĩnh tâm hẳn."',
+                ),
+                _buildTestimonialCard(
+                  'Thu Trang',
+                  '"Từ khi mang vòng, cảm giác năng lượng trong mình dồi dào hơn."',
+                ),
+                _buildTestimonialCard(
+                  'Đình Khang',
+                  '"Kiểu dáng rất đẹp và nam tính, không hề yểu điệu."',
+                ),
               ],
             ),
-          )
+          ),
         ],
       ),
     );
@@ -271,27 +397,52 @@ class HomeSections {
       width: 250,
       margin: const EdgeInsets.only(right: 16),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              CircleAvatar(backgroundColor: gold, child: Text(name[0], style: const TextStyle(color: Colors.white))),
+              CircleAvatar(
+                backgroundColor: gold,
+                child: Text(
+                  name[0],
+                  style: const TextStyle(color: Colors.white),
+                ),
+              ),
               const SizedBox(width: 12),
-              Text(name, style: const TextStyle(fontWeight: FontWeight.bold, color: wine)),
+              Text(
+                name,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: wine,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 12),
-          Text(quote, style: const TextStyle(fontStyle: FontStyle.italic, color: taupe, fontSize: 13, height: 1.5)),
+          Text(
+            quote,
+            style: const TextStyle(
+              fontStyle: FontStyle.italic,
+              color: taupe,
+              fontSize: 13,
+              height: 1.5,
+            ),
+          ),
           const SizedBox(height: 12),
           const Row(
             children: [
-              Icon(Icons.star, color: gold, size: 16), Icon(Icons.star, color: gold, size: 16),
-              Icon(Icons.star, color: gold, size: 16), Icon(Icons.star, color: gold, size: 16),
+              Icon(Icons.star, color: gold, size: 16),
+              Icon(Icons.star, color: gold, size: 16),
+              Icon(Icons.star, color: gold, size: 16),
+              Icon(Icons.star, color: gold, size: 16),
               Icon(Icons.star, color: gold, size: 16),
             ],
-          )
+          ),
         ],
       ),
     );
@@ -310,19 +461,57 @@ class HomeSections {
         ),
         child: Column(
           children: [
-            const Text('Tư vấn miễn phí', style: TextStyle(fontSize: 22, fontFamily: 'serif', fontWeight: FontWeight.bold, color: wine)),
+            const Text(
+              'Tư vấn miễn phí',
+              style: TextStyle(
+                fontSize: 22,
+                fontFamily: 'serif',
+                fontWeight: FontWeight.bold,
+                color: wine,
+              ),
+            ),
             const SizedBox(height: 8),
-            const Text('Chọn vòng hợp mệnh', style: TextStyle(fontSize: 16, color: taupe)),
+            const Text(
+              'Chọn vòng hợp mệnh',
+              style: TextStyle(fontSize: 16, color: taupe),
+            ),
             const SizedBox(height: 24),
-            TextField(decoration: InputDecoration(hintText: 'Họ và tên', filled: true, fillColor: Colors.white, border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none))),
+            TextField(
+              decoration: InputDecoration(
+                hintText: 'Họ và tên',
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
             const SizedBox(height: 12),
-            TextField(decoration: InputDecoration(hintText: 'Số điện thoại', filled: true, fillColor: Colors.white, border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none))),
+            TextField(
+              decoration: InputDecoration(
+                hintText: 'Số điện thoại',
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () {},
-              style: ElevatedButton.styleFrom(backgroundColor: wine, foregroundColor: Colors.white, minimumSize: const Size(double.infinity, 50)),
-              child: const Text('GỬI THÔNG TIN', style: TextStyle(fontWeight: FontWeight.bold)),
-            )
+              style: ElevatedButton.styleFrom(
+                backgroundColor: wine,
+                foregroundColor: Colors.white,
+                minimumSize: const Size(double.infinity, 50),
+              ),
+              child: const Text(
+                'GỬI THÔNG TIN',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
           ],
         ),
       ),
@@ -336,11 +525,25 @@ class HomeSections {
       child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Cát Bracelet', style: TextStyle(fontFamily: 'serif', fontSize: 28, color: gold, fontWeight: FontWeight.bold)),
+          Text(
+            'Cát Bracelet',
+            style: TextStyle(
+              fontFamily: 'serif',
+              fontSize: 28,
+              color: gold,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           SizedBox(height: 8),
-          Text('Năng lượng tinh khiết\nPhong cách tinh tế', style: TextStyle(color: Colors.white, height: 1.5)),
+          Text(
+            'Năng lượng tinh khiết\nPhong cách tinh tế',
+            style: TextStyle(color: Colors.white, height: 1.5),
+          ),
           SizedBox(height: 24),
-          Text('© 2026 Cat Bracelet. All rights reserved.', style: TextStyle(color: Colors.white54, fontSize: 12)),
+          Text(
+            '© 2026 Cat Bracelet. All rights reserved.',
+            style: TextStyle(color: Colors.white54, fontSize: 12),
+          ),
         ],
       ),
     );

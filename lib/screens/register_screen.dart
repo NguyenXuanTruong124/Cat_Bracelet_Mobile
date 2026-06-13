@@ -32,7 +32,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     if (email.isEmpty || fullName.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui lòng nhập đủ các thông tin bắt buộc')),
+        const SnackBar(
+          content: Text('Vui lòng nhập đủ các thông tin bắt buộc'),
+        ),
       );
       return;
     }
@@ -44,13 +46,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
     try {
       final baseUrl = ApiConfig.getBaseUrl(context);
       final url = Uri.parse('$baseUrl/user/register');
-      
+
       final Map<String, dynamic> body = {
         'email': email,
         'fullName': fullName,
         'password': password,
       };
-      
+
       if (phone.isNotEmpty) {
         body['phone'] = phone;
       }
@@ -64,7 +66,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (response.statusCode == 200 || response.statusCode == 201) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Đăng ký thành công, vui lòng kiểm tra email để lấy mã OTP')),
+          const SnackBar(
+            content: Text(
+              'Đăng ký thành công, vui lòng kiểm tra email để lấy mã OTP',
+            ),
+          ),
         );
         Navigator.pushReplacementNamed(context, '/otp', arguments: email);
       } else {
@@ -78,9 +84,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi kết nối tới Server: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Lỗi kết nối tới Server: $e')));
     } finally {
       if (mounted) {
         setState(() {
@@ -108,7 +114,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
         iconTheme: const IconThemeData(color: RegisterScreen._wine),
         title: const Text(
           'Đăng Ký',
-          style: TextStyle(color: RegisterScreen._wine, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: RegisterScreen._wine,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
       body: DecoratedBox(
@@ -122,7 +131,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
         child: SafeArea(
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final horizontalPadding = constraints.maxWidth < 380 ? 22.0 : 34.0;
+              final horizontalPadding = constraints.maxWidth < 380
+                  ? 22.0
+                  : 34.0;
               final panelRadius = constraints.maxWidth < 380 ? 34.0 : 48.0;
 
               return Center(
@@ -198,8 +209,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 });
                               },
                               child: Icon(
-                                _isPasswordVisible ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                                color: RegisterScreen._roseBorder.withValues(alpha: 0.95),
+                                _isPasswordVisible
+                                    ? Icons.visibility_outlined
+                                    : Icons.visibility_off_outlined,
+                                color: RegisterScreen._roseBorder.withValues(
+                                  alpha: 0.95,
+                                ),
                                 size: 26,
                               ),
                             ),
@@ -210,12 +225,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             child: Container(
                               height: 60,
                               decoration: BoxDecoration(
-                                color: _isLoading ? RegisterScreen._wine.withValues(alpha: 0.6) : RegisterScreen._wine,
+                                color: _isLoading
+                                    ? RegisterScreen._wine.withValues(
+                                        alpha: 0.6,
+                                      )
+                                    : RegisterScreen._wine,
                                 borderRadius: BorderRadius.circular(20),
                                 boxShadow: [
                                   if (!_isLoading)
                                     BoxShadow(
-                                      color: RegisterScreen._wine.withValues(alpha: 0.22),
+                                      color: RegisterScreen._wine.withValues(
+                                        alpha: 0.22,
+                                      ),
                                       blurRadius: 15,
                                       offset: const Offset(0, 8),
                                     ),

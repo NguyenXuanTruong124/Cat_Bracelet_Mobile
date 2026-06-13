@@ -1,12 +1,13 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:intl/intl.dart';
 
 import '../config/api_config.dart';
-import '../models/product.dart';
+import '../models/user_session.dart';
+import '../services/api_helpers.dart';
 import 'home/widgets/home_sections.dart';
-// ... các import giữ nguyên
+import 'voucher_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,60 +17,13 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  // Color palette
   static const Color _wine = Color(0xFF902021);
   static const Color _gold = Color(0xFFDAB47D);
   static const Color _softRose = Color(0xFFFFF8F7);
-  static const Color _cream = Color(0xFFFFF3EE);
 
-  List<Product> _products = [];
-  bool _isLoading = true;
-  String _errorMessage = '';
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchProducts();
-  }
-
-  Future<void> _fetchProducts() async {
-    try {
-      final baseUrl = ApiConfig.getBaseUrl(context);
-      final url = Uri.parse('$baseUrl/products');
-      final response = await http.get(url);
-
-      if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
-        setState(() {
-          _products = data.map((json) => Product.fromJson(json)).toList();
-          _isLoading = false;
-        });
-      } else {
-        setState(() {
-          _errorMessage = 'Lỗi tải dữ liệu: ${response.statusCode}';
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      setState(() {
-        _errorMessage = 'Không thể kết nối đến máy chủ';
-        _isLoading = false;
-      });
-    }
-  }
-
-  String _formatPrice(int price) {
-    final formatCurrency = NumberFormat.currency(locale: 'vi_VN', symbol: 'đ');
-    return formatCurrency.format(price);
-  }
-
-  String _getImageUrl(String? thumbnail) {
-    if (thumbnail == null || thumbnail.isEmpty) return '';
-    if (thumbnail.startsWith('http')) return thumbnail;
-
-    final baseUrl = ApiConfig.getBaseUrl(context);
-    final cleanPath = thumbnail.startsWith('/') ? thumbnail : '/$thumbnail';
-    return '$baseUrl$cleanPath';
+  void _logout() {
+    UserSession.clear();
+    Navigator.pushReplacementNamed(context, '/');
   }
 
   @override
@@ -79,6 +33,39 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       backgroundColor: Colors.white,
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: 0,
+        onDestinationSelected: (index) {
+          if (index == 1) {
+            Navigator.pushNamed(context, '/collection');
+          } else if (index == 2) {
+            Navigator.pushNamed(context, '/cart');
+          } else if (index == 3) {
+            Navigator.pushNamed(context, '/vouchers');
+          } else if (index == 4) {
+            Navigator.pushNamed(context, '/profile');
+          }
+        },
+        destinations: const [
+          NavigationDestination(icon: Icon(Icons.home), label: 'Trang chu'),
+          NavigationDestination(
+            icon: Icon(Icons.shopping_bag_outlined),
+            label: 'San pham',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.shopping_cart_outlined),
+            label: 'Gio hang',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.local_activity_outlined),
+            label: 'Voucher',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.person_outline),
+            label: 'Tai khoan',
+          ),
+        ],
+      ),
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
@@ -86,20 +73,12 @@ class _HomeScreenState extends State<HomeScreen> {
             expandedHeight: isMobile ? 70 : 85,
             floating: true,
             pinned: true,
-
             leading: Padding(
               padding: const EdgeInsets.only(left: 12),
-              child: CircleAvatar(
-                backgroundColor: _gold.withOpacity(0.8),
-                child: const Icon(
-                  Icons.person,
-                  color: Colors.white,
-                ),
-              ),
+              child: _UserAvatarMenu(onLogout: _logout),
             ),
-
             title: Text(
-              'Cát Bracelet',
+              'Cat Bracelet',
               style: TextStyle(
                 fontFamily: 'serif',
                 fontWeight: FontWeight.bold,
@@ -107,36 +86,146 @@ class _HomeScreenState extends State<HomeScreen> {
                 fontSize: isMobile ? 20 : 24,
               ),
             ),
-
             centerTitle: true,
-
             actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pushReplacementNamed(context, '/');
-                },
-                child: Text(
-                  'Đăng xuất',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: isMobile ? 13 : 15,
+              IconButton(
+                tooltip: 'Tim kiem',
+                onPressed: () => Navigator.pushNamed(context, '/search'),
+                icon: const Icon(Icons.search, color: Colors.white),
+              ),
+              IconButton(
+                tooltip: 'Gio hang',
+                onPressed: () => Navigator.pushNamed(context, '/cart'),
+                icon: const Icon(
+                  Icons.shopping_cart_outlined,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(width: 8),
+            ],
+          ),
+          SliverToBoxAdapter(
+            child: Container(
+              color: _wine,
+              padding: EdgeInsets.fromLTRB(
+                isMobile ? 16 : 32,
+                8,
+                isMobile ? 16 : 32,
+                18,
+              ),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 900),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () => Navigator.pushNamed(context, '/search'),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: _gold.withValues(alpha: 0.55),
+                        ),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(Icons.search, color: _wine),
+                          SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              'Tim vong tay, da, chat lieu...',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Color(0xFF7B6664),
+                                fontSize: 15,
+                              ),
+                            ),
+                          ),
+                          Icon(Icons.arrow_forward, color: _wine),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ],
+            ),
           ),
-
+          SliverToBoxAdapter(
+            child: Container(
+              color: _wine,
+              padding: EdgeInsets.fromLTRB(
+                isMobile ? 16 : 32,
+                0,
+                isMobile ? 16 : 32,
+                24,
+              ),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 900),
+                  child: Container(
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFFAEF),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: _gold.withValues(alpha: 0.6)),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 62,
+                          height: 62,
+                          decoration: BoxDecoration(
+                            color: _softRose,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(Icons.diamond, color: _wine),
+                        ),
+                        const SizedBox(width: 14),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Diem thanh vien hien tai',
+                                style: TextStyle(
+                                  color: _wine,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(height: 6),
+                              Text(
+                                'Kiem tra VIP va uu dai rieng cua ban',
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () =>
+                              Navigator.pushNamed(context, '/profile'),
+                          child: const Text('Xem'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
           SliverToBoxAdapter(
             child: Center(
               child: ConstrainedBox(
-                constraints: const BoxConstraints(
-                  maxWidth: 1200,
-                ),
+                constraints: const BoxConstraints(maxWidth: 1200),
                 child: HomeSections.buildHeroSection(),
               ),
             ),
           ),
-
           SliverToBoxAdapter(
             child: Padding(
               padding: EdgeInsets.symmetric(
@@ -146,7 +235,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 children: [
                   Text(
-                    'Bộ sưu tập nổi bật',
+                    'Bo suu tap noi bat',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: isMobile ? 22 : 28,
@@ -155,11 +244,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       color: _wine,
                     ),
                   ),
-
-                  SizedBox(
-                    height: isMobile ? 12 : 20,
-                  ),
-
+                  SizedBox(height: isMobile ? 12 : 20),
                   SizedBox(
                     width: isMobile ? double.infinity : 260,
                     child: ElevatedButton(
@@ -175,13 +260,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       onPressed: () {
-                        Navigator.pushReplacementNamed(
-                          context,
-                          '/collection',
-                        );
+                        Navigator.pushNamed(context, '/collection');
                       },
                       child: Text(
-                        'Xem bộ sưu tập',
+                        'Xem bo suu tap',
                         style: TextStyle(
                           fontSize: isMobile ? 14 : 16,
                           fontWeight: FontWeight.bold,
@@ -193,46 +275,35 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-
           SliverToBoxAdapter(
             child: Center(
               child: ConstrainedBox(
-                constraints: const BoxConstraints(
-                  maxWidth: 1200,
-                ),
+                constraints: const BoxConstraints(maxWidth: 1200),
                 child: HomeSections.buildFeaturesSection(),
               ),
             ),
           ),
-
           SliverToBoxAdapter(
             child: Center(
               child: ConstrainedBox(
-                constraints: const BoxConstraints(
-                  maxWidth: 1200,
-                ),
+                constraints: const BoxConstraints(maxWidth: 1200),
                 child: HomeSections.buildAboutSection(),
               ),
             ),
           ),
-
           SliverToBoxAdapter(
             child: Center(
               child: ConstrainedBox(
-                constraints: const BoxConstraints(
-                  maxWidth: 1200,
-                ),
+                constraints: const BoxConstraints(maxWidth: 1200),
                 child: HomeSections.buildTestimonialsSection(),
               ),
             ),
           ),
-
+          const SliverToBoxAdapter(child: _HomeVoucherSection()),
           SliverToBoxAdapter(
             child: Center(
               child: ConstrainedBox(
-                constraints: const BoxConstraints(
-                  maxWidth: 1200,
-                ),
+                constraints: const BoxConstraints(maxWidth: 1200),
                 child: HomeSections.buildFooter(),
               ),
             ),
@@ -241,7 +312,185 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
-// Giữ nguyên _buildFeaturedProducts nếu cần dùng ở CollectionScreen
 }
 
+class _UserAvatarMenu extends StatelessWidget {
+  final VoidCallback onLogout;
+
+  const _UserAvatarMenu({required this.onLogout});
+
+  @override
+  Widget build(BuildContext context) {
+    final user = UserSession.currentUser;
+    final avatar = user?.avatar;
+
+    return PopupMenuButton<String>(
+      tooltip: 'Tai khoan',
+      offset: const Offset(0, 54),
+      onSelected: (value) {
+        if (value == 'profile') {
+          Navigator.pushNamed(context, '/profile');
+        } else if (value == 'orders') {
+          Navigator.pushNamed(context, '/orders');
+        } else if (value == 'logout') {
+          onLogout();
+        }
+      },
+      itemBuilder: (context) => [
+        PopupMenuItem<String>(
+          enabled: false,
+          child: SizedBox(
+            width: 240,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  user?.fullName ?? 'Khach hang',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 4),
+                Text(user?.email ?? 'Chua dang nhap'),
+                const SizedBox(height: 8),
+                Chip(
+                  label: Text(
+                    user?.vipLevelName == null
+                        ? 'VIP: Chua co'
+                        : 'VIP: ${user!.vipLevelName}',
+                  ),
+                  backgroundColor: _HomeScreenState._softRose,
+                ),
+              ],
+            ),
+          ),
+        ),
+        const PopupMenuDivider(),
+        const PopupMenuItem(
+          value: 'profile',
+          child: ListTile(
+            dense: true,
+            leading: Icon(Icons.manage_accounts),
+            title: Text('Tuy chinh thong tin'),
+          ),
+        ),
+        const PopupMenuItem(
+          value: 'orders',
+          child: ListTile(
+            dense: true,
+            leading: Icon(Icons.receipt_long),
+            title: Text('Lich su don hang'),
+          ),
+        ),
+        const PopupMenuItem(
+          value: 'logout',
+          child: ListTile(
+            dense: true,
+            leading: Icon(Icons.logout),
+            title: Text('Dang xuat'),
+          ),
+        ),
+      ],
+      child: CircleAvatar(
+        radius: 19,
+        backgroundColor: _HomeScreenState._gold,
+        backgroundImage: avatar != null && avatar.isNotEmpty
+            ? NetworkImage(avatar)
+            : null,
+        child: avatar == null || avatar.isEmpty
+            ? const Icon(Icons.person, color: Colors.white)
+            : null,
+      ),
+    );
+  }
+}
+
+class _HomeVoucherSection extends StatefulWidget {
+  const _HomeVoucherSection();
+
+  @override
+  State<_HomeVoucherSection> createState() => _HomeVoucherSectionState();
+}
+
+class _HomeVoucherSectionState extends State<_HomeVoucherSection> {
+  static const Color _wine = Color(0xFF902021);
+
+  List<Map<String, dynamic>> _vouchers = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchVouchers();
+  }
+
+  Future<void> _fetchVouchers() async {
+    try {
+      final baseUrl = ApiConfig.getBaseUrl(context);
+      final response = await http.get(Uri.parse('$baseUrl/vouchers'));
+      if (response.statusCode != 200) {
+        return;
+      }
+
+      final vouchers = decodeListPayload(jsonDecode(response.body))
+          .whereType<Map<String, dynamic>>()
+          .where(
+            (voucher) =>
+                (voucher['status'] ?? '').toString().toLowerCase() == 'active',
+          )
+          .take(2)
+          .toList();
+
+      if (!mounted) {
+        return;
+      }
+      setState(() => _vouchers = vouchers);
+    } catch (_) {}
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_vouchers.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      color: const Color(0xFFFFFAEF),
+      padding: const EdgeInsets.fromLTRB(16, 28, 16, 16),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 900),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.local_activity, color: _wine),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text(
+                      'Uu dai dang co',
+                      style: TextStyle(
+                        color: _wine,
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pushNamed(context, '/vouchers'),
+                    child: const Text('Xem tat ca'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              ..._vouchers.map(
+                (voucher) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: VoucherCard(voucher: voucher),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
