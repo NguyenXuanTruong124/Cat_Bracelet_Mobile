@@ -12,6 +12,10 @@ import 'screens/payment_screen.dart';
 import 'screens/search_screen.dart';
 import 'screens/user_details_screen.dart';
 import 'screens/voucher_screen.dart';
+import 'screens/forgot_password_screen.dart';
+import 'screens/order_tracking_screen.dart';
+import 'screens/delivery_address_screen.dart';
+import 'screens/notification_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 Future<void> main() async {
@@ -50,6 +54,18 @@ class CatBraceletApp extends StatelessWidget {
         '/orders': (context) => const OrderHistoryScreen(),
         '/search': (context) => const SearchScreen(),
         '/vouchers': (context) => const VoucherScreen(),
+        '/forgot-password': (context) => const ForgotPasswordScreen(),
+        '/addresses': (context) => const DeliveryAddressScreen(),
+        '/notifications': (context) => const NotificationScreen(),
+      },
+      onGenerateRoute: (settings) {
+        if (settings.name == '/order-tracking') {
+          final orderId = settings.arguments as String? ?? '';
+          return MaterialPageRoute(
+            builder: (context) => OrderTrackingScreen(orderId: orderId),
+          );
+        }
+        return null;
       },
     );
   }

@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 import '../models/user_session.dart';
 import '../services/api_helpers.dart';
+import '../theme/app_colors.dart';
 
 class UserDetailsScreen extends StatefulWidget {
   const UserDetailsScreen({super.key});
@@ -196,6 +197,22 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          _menuTile(
+            icon: Icons.notifications_outlined,
+            title: 'Thông báo',
+            onTap: () => Navigator.pushNamed(context, '/notifications'),
+          ),
+          _menuTile(
+            icon: Icons.receipt_long_outlined,
+            title: 'Đơn hàng của tôi',
+            onTap: () => Navigator.pushNamed(context, '/orders'),
+          ),
+          _menuTile(
+            icon: Icons.location_on_outlined,
+            title: 'Địa chỉ giao hàng',
+            onTap: () => Navigator.pushNamed(context, '/addresses'),
+          ),
+          const Divider(height: 32),
           Center(
             child: CircleAvatar(
               radius: 46,
@@ -267,6 +284,21 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),
+    );
+  }
+
+  Widget _menuTile({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      leading: Icon(icon, color: AppColors.primary),
+      title: Text(title),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: onTap,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      tileColor: Colors.white,
     );
   }
 }

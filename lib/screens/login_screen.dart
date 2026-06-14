@@ -265,14 +265,7 @@ class _LoginFormState extends State<_LoginForm> {
                 alignment: Alignment.centerRight,
                 child: FittedBox(
                   fit: BoxFit.scaleDown,
-                  child: Text(
-                    'Quên mật khẩu?',
-                    style: TextStyle(
-                      color: Color(0xFFA38C69),
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
+                  child: _ForgotPasswordLink(),
                 ),
               ),
             ),
@@ -300,6 +293,25 @@ class _LoginFormState extends State<_LoginForm> {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _ForgotPasswordLink extends StatelessWidget {
+  const _ForgotPasswordLink();
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => Navigator.pushNamed(context, '/forgot-password'),
+      child: const Text(
+        'Quên mật khẩu?',
+        style: TextStyle(
+          color: Color(0xFFA38C69),
+          fontSize: 18,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
     );
   }
 }

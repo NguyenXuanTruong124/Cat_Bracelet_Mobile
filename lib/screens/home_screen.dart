@@ -89,6 +89,11 @@ class _HomeScreenState extends State<HomeScreen> {
             centerTitle: true,
             actions: [
               IconButton(
+                tooltip: 'Thong bao',
+                onPressed: () => Navigator.pushNamed(context, '/notifications'),
+                icon: const Icon(Icons.notifications_outlined, color: Colors.white),
+              ),
+              IconButton(
                 tooltip: 'Tim kiem',
                 onPressed: () => Navigator.pushNamed(context, '/search'),
                 icon: const Icon(Icons.search, color: Colors.white),
