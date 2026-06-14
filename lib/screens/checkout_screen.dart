@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 
 import '../config/api_config.dart';
 import '../models/user_session.dart';
@@ -182,8 +183,26 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       }
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final order = jsonDecode(response.body);
-        Navigator.pushReplacementNamed(context, '/payment', arguments: order);
+        final decoded = jsonDecode(response.body);
+        final checkoutUrl = _extractCheckoutUrl(decoded);
+        final order = _extractOrder(decoded);
+
+        if (checkoutUrl != null) {
+          await _openPaymentLink(checkoutUrl);
+        }
+
+        if (!mounted) {
+          return;
+        }
+
+        Navigator.pushReplacementNamed(
+          context,
+          '/payment',
+          arguments: {
+            'order': order,
+            'checkoutUrl': checkoutUrl,
+          },
+        );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Loi dat hang: ${response.statusCode}')),
@@ -194,6 +213,70 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         setState(() => _isLoading = false);
       }
     }
+  }
+
+  Future<void> _openPaymentLink(String checkoutUrl) async {
+    final uri = Uri.tryParse(checkoutUrl);
+    if (uri == null) {
+      return;
+    }
+
+    final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!opened && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Khong mo duoc cong thanh toan PayOS')),
+      );
+    }
+  }
+
+  Map<String, dynamic>? _extractOrder(dynamic decoded) {
+    if (decoded is! Map<String, dynamic>) {
+      return null;
+    }
+
+    final data = decoded['data'];
+    final order = decoded['order'];
+    if (order is Map<String, dynamic>) {
+      return order;
+    }
+    if (data is Map<String, dynamic>) {
+      final nestedOrder = data['order'];
+      if (nestedOrder is Map<String, dynamic>) {
+        return nestedOrder;
+      }
+      return data;
+    }
+    return decoded;
+  }
+
+  String? _extractCheckoutUrl(dynamic decoded) {
+    if (decoded is! Map<String, dynamic>) {
+      return null;
+    }
+
+    for (final key in [
+      'checkoutUrl',
+      'checkout_url',
+      'paymentUrl',
+      'payment_url',
+      'payosCheckoutUrl',
+      'payos_checkout_url',
+    ]) {
+      final value = decoded[key]?.toString();
+      if (value != null && value.startsWith('http')) {
+        return value;
+      }
+    }
+
+    final data = decoded['data'];
+    final order = decoded['order'];
+    if (data is Map<String, dynamic>) {
+      return _extractCheckoutUrl(data);
+    }
+    if (order is Map<String, dynamic>) {
+      return _extractCheckoutUrl(order);
+    }
+    return null;
   }
 
   @override
