@@ -32,6 +32,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
   final TextEditingController _colorController = TextEditingController();
   final TextEditingController _stoneColorController = TextEditingController();
   final TextEditingController _stoneTypeController = TextEditingController();
+  final Map<String, String> _categoryNamesById = {};
 
   List<Product> _products = [];
   List<String> _colors = [];
@@ -40,6 +41,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
   List<String> _stoneTypes = [];
   List<String> _categories = [];
   List<String> _materials = [];
+
   bool _isLoading = true;
   String _errorMessage = '';
   String? _selectedSize;
@@ -172,7 +174,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
               .toSet()
               .toList()
             ..sort();
-      final categories = responses[1].statusCode == 200
+      final categoryItems = responses[1].statusCode == 200
           ? _decodeList(responses[1].body)
                 .whereType<Map<String, dynamic>>()
                 .where(
@@ -180,13 +182,27 @@ class _CollectionScreenState extends State<CollectionScreen> {
                       (item['status'] ?? '').toString().toLowerCase() ==
                       'active',
                 )
-                .map((item) => item['categoryName'] ?? item['category_name'])
-                .whereType<Object>()
-                .map((item) => item.toString().trim())
-                .where((value) => value.isNotEmpty)
-                .toSet()
                 .toList()
-          : <String>[];
+          : <Map<String, dynamic>>[];
+
+      for (final item in categoryItems) {
+        final id = item['id']?.toString();
+        final name = (item['categoryName'] ?? item['category_name'])
+            ?.toString()
+            .trim();
+
+        if (id != null && name != null && name.isNotEmpty) {
+          _categoryNamesById[id] = name;
+        }
+      }
+
+      final categories = categoryItems
+          .map((item) => item['categoryName'] ?? item['category_name'])
+          .whereType<Object>()
+          .map((item) => item.toString().trim())
+          .where((value) => value.isNotEmpty)
+          .toSet()
+          .toList();
       final materials = responses[2].statusCode == 200
           ? _decodeList(responses[2].body)
                 .whereType<Map<String, dynamic>>()
@@ -284,11 +300,16 @@ class _CollectionScreenState extends State<CollectionScreen> {
     return products.where((product) {
       final categoryMatched =
           _selectedCategory == null ||
-          product.categoryName == _selectedCategory ||
-          product.categoryId == _selectedCategory;
+              _categoryNamesById[product.categoryId] ==
+                  _selectedCategory;
+
       final materialMatched =
           _selectedMaterial == null ||
-          product.materialNames.contains(_selectedMaterial);
+              product.materialNames.any(
+                    (name) =>
+                name.toLowerCase() ==
+                    _selectedMaterial!.toLowerCase(),
+              );
 
       return categoryMatched && materialMatched;
     }).toList();
@@ -363,18 +384,18 @@ class _CollectionScreenState extends State<CollectionScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
-            tooltip: 'Tim kiem',
+            tooltip: 'Tìm kiếm',
             onPressed: () => Navigator.pushNamed(context, '/search'),
           ),
           if (isCompact)
             IconButton(
               icon: const Icon(Icons.tune),
-              tooltip: 'Loc san pham',
+              tooltip: 'Lọc sản phẩm',
               onPressed: _showFilterSheet,
             ),
           IconButton(
             icon: const Icon(Icons.shopping_cart),
-            tooltip: 'Gio hang',
+            tooltip: 'Giỏ hàng',
             onPressed: () {
               ScaffoldMessenger.of(
                 context,
@@ -398,7 +419,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
                     ),
                   )
                 : _products.isEmpty
-                ? const Center(child: Text('Khong co san pham phu hop'))
+                ? const Center(child: Text('Không có sản phẩm phù hợp'))
                 : GridView.builder(
                     padding: const EdgeInsets.all(16),
                     itemCount: _products.length,
@@ -446,34 +467,34 @@ class _CollectionScreenState extends State<CollectionScreen> {
             onPressed: () => _fetchProducts(useFilter: true),
             icon: const Icon(Icons.search, color: Colors.white),
           ),
-          _buildFilterTextField(
-            controller: _colorController,
-            label: 'Mau',
-            suggestions: _colors,
-          ),
-          _buildFilterTextField(
-            controller: _stoneColorController,
-            label: 'Mau da',
-            suggestions: _stoneColors,
-          ),
-          _buildFilterTextField(
-            controller: _stoneTypeController,
-            label: 'Loai da',
-            suggestions: _stoneTypes,
-          ),
-          _buildDropdown(
-            value: _selectedSize,
-            label: 'Size',
-            items: _sizes,
-            onChanged: (value) {
-              setState(() {
-                _selectedSize = value;
-              });
-            },
-          ),
+          // _buildFilterTextField(
+          //   controller: _colorController,
+          //   label: 'Mau',
+          //   suggestions: _colors,
+          // ),
+          // _buildFilterTextField(
+          //   controller: _stoneColorController,
+          //   label: 'Mau da',
+          //   suggestions: _stoneColors,
+          // ),
+          // _buildFilterTextField(
+          //   controller: _stoneTypeController,
+          //   label: 'Loai da',
+          //   suggestions: _stoneTypes,
+          // ),
+          // _buildDropdown(
+          //   value: _selectedSize,
+          //   label: 'Size',
+          //   items: _sizes,
+          //   onChanged: (value) {
+          //     setState(() {
+          //       _selectedSize = value;
+          //     });
+          //   },
+          // ),
           _buildDropdown(
             value: _selectedCategory,
-            label: 'Danh muc',
+            label: 'Danh mục',
             items: _categories,
             onChanged: (value) {
               setState(() {
@@ -483,7 +504,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
           ),
           _buildDropdown(
             value: _selectedMaterial,
-            label: 'Chat lieu',
+            label: 'Chất liệu',
             items: _materials,
             onChanged: (value) {
               setState(() {
@@ -491,22 +512,22 @@ class _CollectionScreenState extends State<CollectionScreen> {
               });
             },
           ),
-          SizedBox(
-            width: 140,
-            child: TextField(
-              controller: _minPriceController,
-              keyboardType: TextInputType.number,
-              decoration: _inputDecoration(label: 'Gia tu'),
-            ),
-          ),
-          SizedBox(
-            width: 140,
-            child: TextField(
-              controller: _maxPriceController,
-              keyboardType: TextInputType.number,
-              decoration: _inputDecoration(label: 'Gia den'),
-            ),
-          ),
+          // SizedBox(
+          //   width: 140,
+          //   child: TextField(
+          //     controller: _minPriceController,
+          //     keyboardType: TextInputType.number,
+          //     decoration: _inputDecoration(label: 'Gia tu'),
+          //   ),
+          // ),
+          // SizedBox(
+          //   width: 140,
+          //   child: TextField(
+          //     controller: _maxPriceController,
+          //     keyboardType: TextInputType.number,
+          //     decoration: _inputDecoration(label: 'Gia den'),
+          //   ),
+          // ),
           ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
               backgroundColor: _wine,
@@ -518,12 +539,12 @@ class _CollectionScreenState extends State<CollectionScreen> {
             ),
             onPressed: () => _fetchProducts(useFilter: true),
             icon: const Icon(Icons.filter_alt),
-            label: const Text('Loc'),
+            label: const Text('Lọc'),
           ),
           TextButton.icon(
             onPressed: _clearFilters,
             icon: const Icon(Icons.close),
-            label: const Text('Xoa loc'),
+            label: const Text('Xóa lọc'),
           ),
         ],
       ),
@@ -640,7 +661,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
                   TextField(
                     controller: _searchController,
                     decoration: _inputDecoration(
-                      label: 'Tim theo ten',
+                      label: '',
                       icon: Icons.search,
                     ),
                   ),
@@ -874,7 +895,6 @@ class _CollectionScreenState extends State<CollectionScreen> {
                 padding: const EdgeInsets.all(12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       product.productName,
@@ -887,6 +907,9 @@ class _CollectionScreenState extends State<CollectionScreen> {
                         height: 1.3,
                       ),
                     ),
+
+                    const SizedBox(height: 4),
+
                     Text(
                       _formatPrice(product.basePrice),
                       style: const TextStyle(
@@ -895,6 +918,9 @@ class _CollectionScreenState extends State<CollectionScreen> {
                         color: _wine,
                       ),
                     ),
+
+                    const Spacer(),
+
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
