@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 
 import 'features/home/screens/home_screen.dart';
@@ -26,12 +29,79 @@ Future<void> main() async {
   runApp(const CatBraceletApp());
 }
 
-class CatBraceletApp extends StatelessWidget {
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+class CatBraceletApp extends StatefulWidget {
   const CatBraceletApp({super.key});
+
+  @override
+  State<CatBraceletApp> createState() => _CatBraceletAppState();
+}
+
+class _CatBraceletAppState extends State<CatBraceletApp> {
+  StreamSubscription<Uri>? _linkSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _initDeepLinks();
+  }
+
+  @override
+  void dispose() {
+    _linkSubscription?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _initDeepLinks() async {
+    final appLinks = AppLinks();
+    _linkSubscription = appLinks.uriLinkStream.listen(_handleDeepLink);
+
+    try {
+      final initialUri = await appLinks.getInitialLink();
+      if (mounted && initialUri != null) {
+        _handleDeepLink(initialUri);
+      }
+    } catch (_) {
+      // Ignore malformed initial links; normal app startup should continue.
+    }
+  }
+
+  void _handleDeepLink(Uri uri) {
+    if (uri.scheme != 'catbracelet') {
+      return;
+    }
+
+    final isPaymentLink = uri.host == 'payment' || uri.path.contains('payment');
+    if (!isPaymentLink) {
+      return;
+    }
+
+    final status = uri.queryParameters['status']?.toLowerCase();
+    final result = uri.path.contains('cancel') || status == 'cancel'
+        ? 'cancel'
+        : 'success';
+    final orderId =
+        uri.queryParameters['orderId'] ??
+        uri.queryParameters['orderCode'] ??
+        uri.queryParameters['id'];
+
+    navigatorKey.currentState?.pushNamedAndRemoveUntil(
+      '/payment',
+      (route) => route.settings.name == '/home',
+      arguments: {
+        'result': result,
+        'order': {
+          if (orderId != null) 'id': orderId,
+        },
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       title: 'Cat Bracelet',
       theme: ThemeData(
