@@ -49,25 +49,15 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   Future<void> _updateQuantity(String id, int quantity) async {
-    final baseUrl = ApiConfig.getBaseUrl(context);
-
-    // Nếu giảm xuống 0 thì xóa khỏi giỏ hàng
-    if (quantity <= 0) {
-      await http.delete(
-        Uri.parse('$baseUrl/cart/item/$id'),
-        headers: apiHeaders(),
-      );
-
-      _fetchCart();
+    if (quantity < 1) {
       return;
     }
-
+    final baseUrl = ApiConfig.getBaseUrl(context);
     await http.patch(
       Uri.parse('$baseUrl/cart/item/$id'),
       headers: apiHeaders(json: true),
       body: jsonEncode({'quantity': quantity}),
     );
-
     _fetchCart();
   }
 
@@ -167,14 +157,11 @@ class _CartScreenState extends State<CartScreen> {
                               Row(
                                 children: [
                                   IconButton(
-                                    onPressed: () {
-                                      if (quantity == 1) {
-                                        _removeItem(id);
-                                      } else {
-                                        _updateQuantity(id, quantity - 1);
-                                      }
-                                    },
-                                    icon: const Icon(Icons.remove_circle_outline),
+                                    onPressed: () =>
+                                        _updateQuantity(id, quantity - 1),
+                                    icon: const Icon(
+                                      Icons.remove_circle_outline,
+                                    ),
                                   ),
                                   Text('$quantity'),
                                   IconButton(

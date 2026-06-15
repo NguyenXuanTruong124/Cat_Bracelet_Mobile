@@ -1,5 +1,3 @@
-import 'product_image.dart';
-
 class Product {
   final String id;
   final String? categoryId;
@@ -17,7 +15,6 @@ class Product {
     required this.id,
     this.categoryId,
     this.categoryName,
-    this.productImages = const [],
     this.materialNames = const [],
     this.materialTypes = const [],
     this.materialColors = const [],
@@ -26,19 +23,8 @@ class Product {
     this.thumbnail,
     this.description,
     required this.status,
-
   });
 
-  String? get firstImage {
-    try {
-      return productImages
-          .firstWhere((e) => e.isActive)
-          .imageUrl;
-    } catch (_) {
-      return thumbnail;
-    }
-  }
-  final List<ProductImage> productImages;
   factory Product.fromJson(Map<String, dynamic> json) {
     final category = json['category'];
     final materials = _readMaterials(json['product_materials']);
@@ -50,12 +36,6 @@ class Product {
       categoryName: category is Map<String, dynamic>
           ? (category['categoryName'] ?? category['category_name'])?.toString()
           : null,
-      productImages:
-      (json['productImages'] as List?)
-          ?.whereType<Map<String, dynamic>>()
-          .map(ProductImage.fromJson)
-          .toList() ??
-          [],
       materialNames: materials.names,
       materialTypes: materials.types,
       materialColors: materials.colors,
@@ -66,7 +46,6 @@ class Product {
       thumbnail: json['thumbnail']?.toString(),
       description: json['description']?.toString(),
       status: (json['status'] ?? 'INACTIVE').toString(),
-
     );
   }
 

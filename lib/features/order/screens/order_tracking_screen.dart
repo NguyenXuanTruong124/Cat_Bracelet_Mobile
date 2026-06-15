@@ -72,45 +72,25 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
-
   }
-  String _paymentStatusLabel(String? status) {
-    switch ((status ?? '').toUpperCase()) {
-      case 'PAID':
-        return 'Đã thanh toán';
 
-      case 'PENDING':
-        return 'Chờ thanh toán';
-
-      case 'FAILED':
-        return 'Thanh toán thất bại';
-
-      default:
-        return status ?? '';
-    }
-  }
   int _activeStepIndex(String? status) {
     switch ((status ?? '').toUpperCase()) {
       case 'PENDING':
         return 0;
-
       case 'CONFIRMED':
-        return 1;
-
       case 'PROCESSING':
-        return 2;
-
+        return 1;
       case 'SHIPPING':
       case 'SHIPPED':
+        return 2;
+      case 'OUT_FOR_DELIVERY':
         return 3;
-
       case 'DELIVERED':
       case 'COMPLETED':
         return 4;
-
       case 'CANCELLED':
         return -1;
-
       default:
         return 0;
     }
@@ -209,32 +189,6 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                         );
                       }),
                     ],
-                    if (order['paymentStatus'] == 'PAID')
-                      Container(
-                        margin: const EdgeInsets.only(top: 16),
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.green.shade50,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: Colors.green.shade200,
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.check_circle,
-                              color: Colors.green,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                'Đã thanh toán lúc ${_formatDate(order['paidAt']?.toString())}',
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
                     const SizedBox(height: 24),
                     if (item != null) _buildProductCard(product, item, variant, baseUrl),
                     const SizedBox(height: 24),
@@ -248,12 +202,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
   }
 
   Widget _buildOrderHeader(Map<String, dynamic> order) {
-    final orderId = order['id']?.toString() ?? '';
-
-    final shortId =
-    orderId.length >= 8
-        ? orderId.substring(0, 8).toUpperCase()
-        : orderId.toUpperCase();
+    final shortId = order['id']?.toString().substring(0, 8).toUpperCase() ?? '';
     return Column(
       children: [
         Container(
@@ -285,47 +234,10 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
         const SizedBox(height: 8),
         Text(
           'Trạng thái: ${_statusLabel(order['status']?.toString())}',
-
           style: const TextStyle(
             fontFamily: 'serif',
             fontSize: 22,
             fontWeight: FontWeight.w600,
-            color: AppColors.primary,
-          ),
-        ),
-        const SizedBox(height: 8),
-
-        Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 12,
-            vertical: 6,
-          ),
-          decoration: BoxDecoration(
-            color: order['paymentStatus'] == 'PAID'
-                ? Colors.green.withOpacity(0.1)
-                : Colors.orange.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Text(
-            _paymentStatusLabel(
-              order['paymentStatus']?.toString(),
-            ),
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              color: order['paymentStatus'] == 'PAID'
-                  ? Colors.green
-                  : Colors.orange,
-            ),
-          ),
-        ),
-
-        const SizedBox(height: 12),
-
-        Text(
-          'Tổng thanh toán: ${_price(order['totalAmount'])}',
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
             color: AppColors.primary,
           ),
         ),
@@ -667,10 +579,6 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
   }
 
   Widget _buildBottomActions() {
-    final canRetryPayment =
-        _order?['canRetryPayment'] == true &&
-            _order?['paymentStatus'] == 'PENDING';
-
     return Positioned(
       left: 0,
       right: 0,
@@ -691,45 +599,25 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-
-            // if (canRetryPayment) ...[
-            //   SizedBox(
-            //     width: double.infinity,
-            //     height: 52,
-            //     child: ElevatedButton.icon(
-            //       onPressed: _retryPayment,
-            //       icon: const Icon(Icons.payment),
-            //       label: const Text(
-            //         'THANH TOÁN LẠI',
-            //         style: TextStyle(
-            //           letterSpacing: 2,
-            //           fontWeight: FontWeight.w600,
-            //         ),
-            //       ),
-            //     ),
-            //   ),
-            //   const SizedBox(height: 12),
-            // ],
-
             SizedBox(
               width: double.infinity,
               height: 52,
               child: ElevatedButton.icon(
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Liên hệ hỗ trợ: support@catbracelet.com',
-                      ),
-                    ),
+                    const SnackBar(content: Text('Liên hệ hỗ trợ: support@catbracelet.com')),
                   );
                 },
                 icon: const Icon(Icons.support_agent),
                 label: const Text(
                   'LIÊN HỆ HỖ TRỢ',
-                  style: TextStyle(
-                    letterSpacing: 2,
-                    fontWeight: FontWeight.w600,
+                  style: TextStyle(letterSpacing: 2, fontWeight: FontWeight.w600),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
               ),
@@ -746,6 +634,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
         return 'Chờ xác nhận';
       case 'CONFIRMED':
         return 'Đã xác nhận';
+      case 'SHIPPING':
       case 'SHIPPED':
         return 'Đang vận chuyển';
       case 'OUT_FOR_DELIVERY':
@@ -755,10 +644,6 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
         return 'Đã giao hàng';
       case 'CANCELLED':
         return 'Đã hủy';
-      case 'PROCESSING':
-        return 'Đang xử lý';
-      case 'SHIPPING':
-        return 'Đang vận chuyển';
       default:
         return status ?? '';
     }
