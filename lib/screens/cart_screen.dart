@@ -97,13 +97,15 @@ class _CartScreenState extends State<CartScreen> {
               separatorBuilder: (context, index) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
                 final item = items[index] as Map<String, dynamic>;
-                final product = item['product'] as Map<String, dynamic>?;
-                final variant = item['variantDetails'] as Map<String, dynamic>?;
+                final product = readProductPayload(item);
+                final variant = asStringMap(
+                  item['variantDetails'] ?? item['variant'],
+                );
                 final quantity = toInt(item['quantity']);
                 final id = (item['cartItemId'] ?? item['id']).toString();
                 final imageUrl = buildImageUrl(
                   baseUrl,
-                  product?['thumbnail']?.toString(),
+                  readThumbnailPath(product) ?? readThumbnailPath(item),
                 );
 
                 return Card(
@@ -131,7 +133,12 @@ class _CartScreenState extends State<CartScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                (product?['productName'] ?? 'San pham')
+                                (readStringField(product, const [
+                                          'productName',
+                                          'product_name',
+                                          'name',
+                                        ]) ??
+                                        'San pham')
                                     .toString(),
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
