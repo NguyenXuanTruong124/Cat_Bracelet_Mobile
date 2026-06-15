@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
 
-import 'screens/home_screen.dart';
-import 'screens/login_screen.dart';
-import 'screens/register_screen.dart';
-import 'screens/otp_screen.dart';
-import 'screens/colllection.dart';
-import 'screens/cart_screen.dart';
-import 'screens/checkout_screen.dart';
-import 'screens/order_history_screen.dart';
-import 'screens/payment_screen.dart';
-import 'screens/search_screen.dart';
-import 'screens/user_details_screen.dart';
-import 'screens/voucher_screen.dart';
-import 'screens/forgot_password_screen.dart';
-import 'screens/order_tracking_screen.dart';
-import 'screens/delivery_address_screen.dart';
-import 'screens/notification_screen.dart';
+import 'features/home/screens/home_screen.dart';
+import 'features/auth/screens/login_screen.dart';
+import 'features/auth/screens/register_screen.dart';
+import 'features/auth/screens/otp_screen.dart';
+import 'features/product/screens/collection_screen.dart';
+import 'features/cart/screens/cart_screen.dart';
+import 'features/cart/screens/checkout_screen.dart';
+import 'features/order/screens/order_history_screen.dart';
+import 'features/cart/screens/payment_screen.dart';
+import 'features/search/screen/search_screen.dart';
+import 'features/profile/screens/user_details_screen.dart';
+import 'features/cart/screens/voucher_screen.dart';
+import 'features/auth/screens/forgot_password_screen.dart';
+import 'features/order/screens/order_tracking_screen.dart';
+import 'features/cart/screens/delivery_address_screen.dart';
+import 'features/notification/screen/notification_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 Future<void> main() async {
