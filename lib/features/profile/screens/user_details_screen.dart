@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
+import 'package:image_picker/image_picker.dart';
+import 'package:http_parser/http_parser.dart';
 import '../../../core/config/api_config.dart';
 import '../models/user_session.dart';
 import '../../../core/services/api_helpers.dart';
@@ -23,7 +25,6 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _avatarController = TextEditingController();
-  final _avatarPathController = TextEditingController();
 
   bool _isLoading = false;
 
@@ -40,7 +41,6 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
     _emailController.dispose();
     _phoneController.dispose();
     _avatarController.dispose();
-    _avatarPathController.dispose();
     super.dispose();
   }
 
@@ -110,10 +110,10 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
         }
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('Da cap nhat thong tin')));
+        ).showSnackBar(const SnackBar(content: Text('Đã cập nhật thông tin')));
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Loi cap nhat: ${response.statusCode}')),
+          SnackBar(content: Text('Lỗi cập nhật: ${response.statusCode}')),
         );
       }
     } finally {
@@ -123,60 +123,80 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
     }
   }
 
-  Future<void> _uploadAvatarFromPath() async {
+  Future<void> _uploadAvatar() async {
     final user = UserSession.currentUser;
-    final filePath = _avatarPathController.text.trim();
-    if (user == null || filePath.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Nhap duong dan file anh')));
-      return;
-    }
+    if (user == null) return;
 
-    final file = File(filePath);
-    if (!file.existsSync()) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Khong tim thay file anh')));
-      return;
-    }
+    final picker = ImagePicker();
+
+    final image = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
+    );
+
+    if (image == null) return;
 
     setState(() => _isLoading = true);
+
     try {
       final baseUrl = ApiConfig.getBaseUrl(context);
+
       final request = http.MultipartRequest(
         'PATCH',
-        Uri.parse('$baseUrl/user/profile/${user.id}'),
+        Uri.parse('$baseUrl/user/${user.id}/avatar'),
       );
+
       request.headers.addAll(apiHeaders());
-      request.fields.addAll({
-        'fullName': _nameController.text.trim(),
-        'email': _emailController.text.trim(),
-        'phone': _phoneController.text.trim(),
-      });
-      request.files.add(await http.MultipartFile.fromPath('avatar', filePath));
+
+      request.fields['type'] = 'A';
+
+      final path = image.path.toLowerCase();
+
+      MediaType mediaType;
+
+      if (path.endsWith('.png')) {
+        mediaType = MediaType('image', 'png');
+      } else if (path.endsWith('.jpg') || path.endsWith('.jpeg')) {
+        mediaType = MediaType('image', 'jpeg');
+      } else if (path.endsWith('.webp')) {
+        mediaType = MediaType('image', 'webp');
+      } else {
+        throw Exception('Định dạng ảnh không hỗ trợ');
+      }
+
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'avatar',
+          image.path,
+          contentType: mediaType,
+        ),
+      );
 
       final response = await request.send();
       final body = await response.stream.bytesToString();
 
-      if (!mounted) {
-        return;
-      }
+      debugPrint('STATUS: ${response.statusCode}');
+      debugPrint('BODY: $body');
+
+      if (!mounted) return;
 
       if (response.statusCode == 200) {
-        final decoded = jsonDecode(body);
-        if (decoded is Map<String, dynamic>) {
-          UserSession.currentUser = AppUser.fromJson(decoded);
-          _fill(UserSession.currentUser);
-        }
+        await _fetchProfile();
+
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('Da upload avatar')));
+        ).showSnackBar(const SnackBar(content: Text('Đã upload avatar')));
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Upload avatar loi: ${response.statusCode}')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(body)));
       }
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Lỗi: $e')));
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -190,7 +210,7 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Thong tin tai khoan'),
+        title: const Text('Thông tin tài khoản'),
         backgroundColor: _wine,
         foregroundColor: Colors.white,
       ),
@@ -229,7 +249,7 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
             child: Chip(
               label: Text(
                 user?.vipLevelName == null
-                    ? 'VIP: Chua co'
+                    ? 'VIP: Không có'
                     : 'VIP: ${user!.vipLevelName}',
               ),
             ),
@@ -237,19 +257,14 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
           if ((user?.vipBenefits ?? '').isNotEmpty)
             Center(child: Text(user!.vipBenefits!)),
           const SizedBox(height: 20),
-          _field(_nameController, 'Ho ten', Icons.person),
+          _field(_nameController, 'Họ tên', Icons.person),
           _field(_emailController, 'Email', Icons.mail),
-          _field(_phoneController, 'So dien thoai', Icons.phone),
-          _field(_avatarController, 'Avatar URL', Icons.image),
-          _field(
-            _avatarPathController,
-            'Duong dan file avatar tren may',
-            Icons.upload_file,
-          ),
+          _field(_phoneController, 'Số điện thoại', Icons.phone),
+
           OutlinedButton.icon(
-            onPressed: _isLoading ? null : _uploadAvatarFromPath,
+            onPressed: _isLoading ? null : _uploadAvatar,
             icon: const Icon(Icons.upload),
-            label: const Text('Upload avatar tu may'),
+            label: const Text('Chọn ảnh đại diện'),
           ),
           const SizedBox(height: 20),
           ElevatedButton.icon(
@@ -266,7 +281,7 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.save),
-            label: const Text('Luu thong tin'),
+            label: const Text('Lưu thông tin'),
           ),
         ],
       ),

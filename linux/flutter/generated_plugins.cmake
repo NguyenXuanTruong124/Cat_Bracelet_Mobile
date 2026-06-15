@@ -3,8 +3,12 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+<<<<<<< HEAD
   gtk
   url_launcher_linux
+=======
+  file_selector_linux
+>>>>>>> Hien_branch
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST

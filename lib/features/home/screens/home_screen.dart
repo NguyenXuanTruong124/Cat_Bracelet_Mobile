@@ -92,7 +92,10 @@ class _HomeScreenState extends State<HomeScreen> {
               IconButton(
                 tooltip: 'Thông báo',
                 onPressed: () => Navigator.pushNamed(context, '/notifications'),
-                icon: const Icon(Icons.notifications_outlined, color: Colors.white),
+                icon: const Icon(
+                  Icons.notifications_outlined,
+                  color: Colors.white,
+                ),
               ),
               IconButton(
                 tooltip: 'Tìm kiếm',
@@ -499,4 +502,6 @@ class _HomeVoucherSectionState extends State<_HomeVoucherSection> {
       ),
     );
   }
+
+
 }
