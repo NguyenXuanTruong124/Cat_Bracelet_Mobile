@@ -5,8 +5,8 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
 import '../../../config/api_config.dart';
-import 'package:cat_bracelet_mobile/features/profile//models/user_session.dart';
-import '../../../core/services/api_helpers.dart';
+import '../../../models/user_session.dart';
+import '../../../services/api_helpers.dart';
 import '../../../theme/app_colors.dart';
 import '../../../features/order/screens/order_tracking_screen.dart';
 
