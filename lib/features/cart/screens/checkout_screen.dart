@@ -2,11 +2,11 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-
 import '../../../core/config/api_config.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../profile/models/user_session.dart';
 import '../../../core/services/api_helpers.dart';
+import 'package:cat_bracelet_mobile/features/payment/screen/payOS_webview_screen.dart';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -253,8 +253,35 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       }
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final order = jsonDecode(response.body);
-        Navigator.pushReplacementNamed(context, '/payment', arguments: order);
+        final result = jsonDecode(response.body);
+
+        final payment =
+        result['payment'] as Map<String, dynamic>?;
+
+        final checkoutUrl =
+        payment?['checkoutUrl']?.toString();
+
+        if (checkoutUrl != null &&
+            checkoutUrl.isNotEmpty) {
+
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => PayOsWebViewScreen(
+                checkoutUrl: checkoutUrl,
+              ),
+            ),
+          );
+
+          return;
+        }
+        if (!mounted) return;
+
+        Navigator.pushReplacementNamed(
+          context,
+          '/orders',
+        );
+
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Lỗi đặt hàng: ${response.statusCode}')),

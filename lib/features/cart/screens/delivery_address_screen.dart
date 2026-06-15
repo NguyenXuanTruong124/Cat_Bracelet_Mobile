@@ -367,19 +367,81 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
   bool get _isEditing => widget.address != null;
 
   @override
+  @override
   void initState() {
     super.initState();
+    _initForm();
+  }
+
+  Future<void> _initForm() async {
     if (_isEditing) {
       final a = widget.address!;
+
       _receiverController.text = a['receiverName']?.toString() ?? '';
       _phoneController.text = a['phone']?.toString() ?? '';
       _detailController.text = a['detailAddress']?.toString() ?? '';
+
       _selectedProvince = a['province']?.toString();
       _selectedDistrict = a['district']?.toString();
       _selectedWard = a['ward']?.toString();
+
       _isDefault = a['isDefault'] == true;
     }
-    _loadProvinces();
+
+    await _loadProvinces();
+
+    if (_isEditing) {
+      final province = _provinces.cast<Map<String, dynamic>?>().firstWhere(
+            (p) => p?['name'] == _selectedProvince,
+        orElse: () => null,
+      );
+
+      if (province != null) {
+        await _loadDistrictsForEdit(province['id'].toString());
+
+        final district = _districts.cast<Map<String, dynamic>?>().firstWhere(
+              (d) => d?['name'] == _selectedDistrict,
+          orElse: () => null,
+        );
+
+        if (district != null) {
+          await _loadWardsForEdit(district['id'].toString());
+        }
+      }
+    }
+
+    if (mounted) {
+      setState(() {
+        _loadingLocations = false;
+      });
+    }
+  }
+  Future<void> _loadDistrictsForEdit(String provinceId) async {
+    final baseUrl = ApiConfig.getBaseUrl(context);
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/shipments/districts/$provinceId'),
+    );
+
+    if (response.statusCode == 200) {
+      _districts = decodeListPayload(jsonDecode(response.body))
+          .whereType<Map<String, dynamic>>()
+          .toList();
+    }
+  }
+
+  Future<void> _loadWardsForEdit(String districtId) async {
+    final baseUrl = ApiConfig.getBaseUrl(context);
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/shipments/wards/$districtId'),
+    );
+
+    if (response.statusCode == 200) {
+      _wards = decodeListPayload(jsonDecode(response.body))
+          .whereType<Map<String, dynamic>>()
+          .toList();
+    }
   }
 
   @override
@@ -407,7 +469,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
   Future<void> _loadDistricts(String provinceId) async {
     final baseUrl = ApiConfig.getBaseUrl(context);
     final response = await http.get(
-      Uri.parse('$baseUrl/shipments/districts$provinceId'),
+      Uri.parse('$baseUrl/shipments/districts/$provinceId'),
     );
     if (response.statusCode == 200) {
       setState(() {
@@ -424,7 +486,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
   Future<void> _loadWards(String districtId) async {
     final baseUrl = ApiConfig.getBaseUrl(context);
     final response = await http.get(
-      Uri.parse('$baseUrl/shipments/wards$districtId'),
+      Uri.parse('$baseUrl/shipments/wards/$districtId'),
     );
     if (response.statusCode == 200) {
       setState(() {
