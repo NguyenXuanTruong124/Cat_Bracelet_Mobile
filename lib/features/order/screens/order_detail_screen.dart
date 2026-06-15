@@ -61,6 +61,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     final order = _order;
     final items = decodeListPayload(order?['items']);
     final address = order?['address'] as Map<String, dynamic>?;
+    final baseUrl = ApiConfig.getBaseUrl(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -103,9 +104,35 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 const SizedBox(height: 8),
                 ...items.map((rawItem) {
                   final item = rawItem as Map<String, dynamic>;
-                  final variant = item['variant'] as Map<String, dynamic>?;
+                  final variant = asStringMap(item['variant']);
+                  final product = readProductPayload(item);
+                  final thumbnail = buildImageUrl(
+                    baseUrl,
+                    readThumbnailPath(product) ?? readThumbnailPath(item),
+                  );
                   return Card(
                     child: ListTile(
+                      leading: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: SizedBox(
+                          width: 56,
+                          height: 56,
+                          child: thumbnail.isEmpty
+                              ? const ColoredBox(
+                                  color: Color(0xFFFFF8F7),
+                                  child: Icon(Icons.image_not_supported),
+                                )
+                              : Image.network(
+                                  thumbnail,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) =>
+                                      const ColoredBox(
+                                        color: Color(0xFFFFF8F7),
+                                        child: Icon(Icons.image_not_supported),
+                                      ),
+                                ),
+                        ),
+                      ),
                       title: Text(
                         '${variant?['color'] ?? ''} ${variant?['size'] ?? ''}'
                                 .trim()

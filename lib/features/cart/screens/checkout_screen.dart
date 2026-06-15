@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 
@@ -176,6 +177,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           'userId': user.id,
           'addressId': addressId,
           'voucherCode': _voucherController.text.trim(),
+          'paymentReturnUrl': dotenv.env['PAYOS_RETURN_URL'],
+          'paymentCancelUrl': dotenv.env['PAYOS_CANCEL_URL'],
         }),
       );
 

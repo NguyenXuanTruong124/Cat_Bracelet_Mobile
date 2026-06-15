@@ -124,13 +124,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
     final items = decodeListPayload(order?['items']);
     if (items.isEmpty) return null;
     final item = items.first as Map<String, dynamic>;
-    final variant = item['variant'] as Map<String, dynamic>?;
-    final mappings = variant?['productVariantMappings'] as List?;
-    if (mappings != null && mappings.isNotEmpty) {
-      return (mappings.first as Map<String, dynamic>)['product']
-          as Map<String, dynamic>?;
-    }
-    return null;
+    return readProductPayload(item);
   }
 
   Map<String, dynamic>? _firstItem(Map<String, dynamic>? order) {
@@ -416,7 +410,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
     String baseUrl,
   ) {
     final name = product?['productName']?.toString() ?? 'Sản phẩm';
-    final thumbnail = buildImageUrl(baseUrl, product?['thumbnail']?.toString());
+    final thumbnail = buildImageUrl(baseUrl, readThumbnailPath(product));
     final size = variant?['size']?.toString() ?? '';
     final qty = item['quantity'] ?? 1;
 
