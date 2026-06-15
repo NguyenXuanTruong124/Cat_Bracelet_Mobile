@@ -53,7 +53,7 @@ class _VoucherScreenState extends State<VoucherScreen> {
     return Scaffold(
       backgroundColor: _cream,
       appBar: AppBar(
-        title: const Text('Voucher cua toi'),
+        title: const Text('Voucher của tôi'),
         backgroundColor: _wine,
         foregroundColor: Colors.white,
       ),

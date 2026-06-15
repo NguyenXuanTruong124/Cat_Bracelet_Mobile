@@ -199,7 +199,21 @@ class _CartScreenState extends State<CartScreen> {
                 ),
                 onPressed: items.isEmpty
                     ? null
-                    : () => Navigator.pushNamed(context, '/checkout'),
+                    : () {
+                  final cartItemIds = items
+                      .map<String>(
+                        (e) => ((e as Map<String, dynamic>)['cartItemId'] ??
+                        e['id'])
+                        .toString(),
+                  )
+                      .toList();
+
+                  Navigator.pushNamed(
+                    context,
+                    '/checkout',
+                    arguments: cartItemIds,
+                  );
+                },
                 icon: const Icon(Icons.payments),
                 label: const Text('Dat hang'),
               ),
