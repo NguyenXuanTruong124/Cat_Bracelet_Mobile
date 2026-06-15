@@ -49,25 +49,15 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   Future<void> _updateQuantity(String id, int quantity) async {
-    final baseUrl = ApiConfig.getBaseUrl(context);
-
-    // Nếu giảm xuống 0 thì xóa khỏi giỏ hàng
-    if (quantity <= 0) {
-      await http.delete(
-        Uri.parse('$baseUrl/cart/item/$id'),
-        headers: apiHeaders(),
-      );
-
-      _fetchCart();
+    if (quantity < 1) {
       return;
     }
-
+    final baseUrl = ApiConfig.getBaseUrl(context);
     await http.patch(
       Uri.parse('$baseUrl/cart/item/$id'),
       headers: apiHeaders(json: true),
       body: jsonEncode({'quantity': quantity}),
     );
-
     _fetchCart();
   }
 
@@ -108,15 +98,18 @@ class _CartScreenState extends State<CartScreen> {
               separatorBuilder: (context, index) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
                 final item = items[index] as Map<String, dynamic>;
-                final product = item['product'] as Map<String, dynamic>?;
-                final variant = item['variantDetails'] as Map<String, dynamic>?;
+                final product = readProductPayload(item);
+                final variant = asStringMap(
+                  item['variantDetails'] ?? item['variant'],
+                );
                 final quantity = toInt(item['quantity']);
                 final id = (item['cartItemId'] ?? item['id']).toString();
                 final imageUrl = buildImageUrl(
                   baseUrl,
-                  product?['thumbnail']?.toString(),
+                  readThumbnailPath(product) ?? readThumbnailPath(item),
                 );
 
+                
                 return Card(
                   child: Padding(
                     padding: const EdgeInsets.all(12),
@@ -142,7 +135,12 @@ class _CartScreenState extends State<CartScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                (product?['productName'] ?? 'San pham')
+                                (readStringField(product, const [
+                                          'productName',
+                                          'product_name',
+                                          'name',
+                                        ]) ??
+                                        'San pham')
                                     .toString(),
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
@@ -160,14 +158,11 @@ class _CartScreenState extends State<CartScreen> {
                               Row(
                                 children: [
                                   IconButton(
-                                    onPressed: () {
-                                      if (quantity == 1) {
-                                        _removeItem(id);
-                                      } else {
-                                        _updateQuantity(id, quantity - 1);
-                                      }
-                                    },
-                                    icon: const Icon(Icons.remove_circle_outline),
+                                    onPressed: () =>
+                                        _updateQuantity(id, quantity - 1),
+                                    icon: const Icon(
+                                      Icons.remove_circle_outline,
+                                    ),
                                   ),
                                   Text('$quantity'),
                                   IconButton(

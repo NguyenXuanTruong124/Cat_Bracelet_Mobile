@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:cat_bracelet_mobile/features/product/models/product_variant_mapping.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -69,17 +68,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
         nextVariants = _decodeList(responses[1].body)
             .whereType<Map<String, dynamic>>()
             .map(ProductVariants.fromJson)
-            .where((variant) {
-          if (variant.status.toUpperCase() != 'ACTIVE') {
-            return false;
-          }
-
-          return variant.mappings.any(
-                (m) =>
-            m.productId == _product.id &&
-                m.product?.status == 'ACTIVE',
-          );
-        })
+            .where((variant) => variant.status.toLowerCase() == 'active')
             .toList();
       }
 
@@ -99,7 +88,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
       }
 
       setState(() {
-        _errorMessage = 'Kh?ng th? t?i chi ti?t s?n ph?m';
+        _errorMessage = 'Khong the tai chi tiet san pham';
         _isLoading = false;
       });
     }
@@ -133,11 +122,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
   }
 
   int get _displayPrice {
-    if (_selectedVariant != null) {
-      return _selectedVariant!.extraPrice.toInt();
-    }
-
-    return _product.basePrice;
+    return _product.basePrice + ((_selectedVariant?.extraPrice ?? 0).toInt());
   }
 
   String _formatPrice(num price) {
@@ -202,7 +187,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final imageUrl = _getImageUrl(_product.firstImage);
+    final imageUrl = _getImageUrl(_product.thumbnail);
 
     return Scaffold(
       appBar: AppBar(

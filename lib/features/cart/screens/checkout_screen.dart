@@ -1,12 +1,14 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
+
 import '../../../core/config/api_config.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../profile/models/user_session.dart';
 import '../../../core/services/api_helpers.dart';
-import 'package:cat_bracelet_mobile/features/payment/screen/payOS_webview_screen.dart';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -18,6 +20,7 @@ class CheckoutScreen extends StatefulWidget {
 class _CheckoutScreenState extends State<CheckoutScreen> {
   static const Color _wine = AppColors.wine;
 
+  final _voucherController = TextEditingController();
   final _receiverController = TextEditingController();
   final _phoneController = TextEditingController();
   final _provinceController = TextEditingController();
@@ -26,35 +29,24 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final _detailController = TextEditingController();
 
   List<Map<String, dynamic>> _addresses = [];
-  List<dynamic> _provinces = [];
-  List<dynamic> _districts = [];
-  List<dynamic> _wards = [];
-
-  dynamic _selectedProvince;
-  dynamic _selectedDistrict;
-  dynamic _selectedWard;
-
   String? _selectedAddressId;
   bool _isLoading = true;
   bool _showNewAddressForm = false;
-
-  List<dynamic> _vouchers = [];
-  String? _selectedVoucherCode;
-
-  List<String> _cartItemIds = [];
 
   @override
   void initState() {
     super.initState();
     _fetchAddresses();
-    _loadProvinces();
-    _loadVouchers();
   }
 
   @override
   void dispose() {
+    _voucherController.dispose();
     _receiverController.dispose();
     _phoneController.dispose();
+    _provinceController.dispose();
+    _districtController.dispose();
+    _wardController.dispose();
     _detailController.dispose();
     super.dispose();
   }
@@ -100,60 +92,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 
-  Future<void> _loadProvinces() async {
-    try {
-      final response = await http.get(
-        Uri.parse('https://provinces.open-api.vn/api/p/'),
-      );
-
-      if (response.statusCode == 200) {
-        setState(() {
-          _provinces = jsonDecode(response.body);
-        });
-      }
-    } catch (_) {}
-  }
-
-  Future<void> _loadDistricts(int provinceCode) async {
-    try {
-      final response = await http.get(
-        Uri.parse(
-          'https://provinces.open-api.vn/api/p/$provinceCode?depth=2',
-        ),
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-
-        setState(() {
-          _districts = data['districts'] ?? [];
-          _wards = [];
-          _selectedDistrict = null;
-          _selectedWard = null;
-        });
-      }
-    } catch (_) {}
-  }
-
-  Future<void> _loadWards(int districtCode) async {
-    try {
-      final response = await http.get(
-        Uri.parse(
-          'https://provinces.open-api.vn/api/d/$districtCode?depth=2',
-        ),
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-
-        setState(() {
-          _wards = data['wards'] ?? [];
-          _selectedWard = null;
-        });
-      }
-    } catch (_) {}
-  }
-
   Future<String?> _createAddressIfNeeded() async {
     final user = UserSession.currentUser;
     if (user == null) {
@@ -165,19 +103,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     final receiver = _receiverController.text.trim();
     final phone = _phoneController.text.trim();
-    final province = _selectedProvince?['name'] ?? '';
-    final district = _selectedDistrict?['name'] ?? '';
-    final ward = _selectedWard?['name'] ?? '';
+    final province = _provinceController.text.trim();
+    final district = _districtController.text.trim();
+    final ward = _wardController.text.trim();
     final detail = _detailController.text.trim();
 
-    if (receiver.isEmpty ||
-        phone.isEmpty ||
-        detail.isEmpty ||
-        _selectedProvince == null ||
-        _selectedDistrict == null ||
-        _selectedWard == null) {
+    if ([
+      receiver,
+      phone,
+      province,
+      district,
+      ward,
+      detail,
+    ].any((value) => value.isEmpty)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Nhập đầy đủ địa chỉ giao hàng')),
+        const SnackBar(content: Text('Nhap day du dia chi giao hang')),
       );
       return null;
     }
@@ -207,7 +147,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Tạo địa chỉ lỗi: ${response.statusCode}')),
+        SnackBar(content: Text('Tao dia chi loi: ${response.statusCode}')),
       );
     }
     return null;
@@ -218,9 +158,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     if (user == null) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Vui lòng đăng nhập')));
+      ).showSnackBar(const SnackBar(content: Text('Vui long dang nhap')));
       return;
-
     }
 
     setState(() => _isLoading = true);
@@ -231,60 +170,46 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         return;
       }
 
-      final body = {
-        'userId': user.id,
-        'addressId': addressId,
-        'voucherCode': _selectedVoucherCode,
-        'cartItemIds': _cartItemIds,
-      };
-
-      debugPrint('CHECKOUT BODY: ${jsonEncode(body)}');
-
       final response = await http.post(
         Uri.parse('$baseUrl/orders/checkout'),
         headers: apiHeaders(json: true),
-        body: jsonEncode(body),
+        body: jsonEncode({
+          'userId': user.id,
+          'addressId': addressId,
+          'voucherCode': _voucherController.text.trim(),
+          'paymentReturnUrl': dotenv.env['PAYOS_RETURN_URL'],
+          'paymentCancelUrl': dotenv.env['PAYOS_CANCEL_URL'],
+        }),
       );
-
-      debugPrint('CHECKOUT RESPONSE: ${response.body}');
 
       if (!mounted) {
         return;
       }
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final result = jsonDecode(response.body);
+        final decoded = jsonDecode(response.body);
+        final checkoutUrl = _extractCheckoutUrl(decoded);
+        final order = _extractOrder(decoded);
 
-        final payment =
-        result['payment'] as Map<String, dynamic>?;
+        if (checkoutUrl != null) {
+          await _openPaymentLink(checkoutUrl);
+        }
 
-        final checkoutUrl =
-        payment?['checkoutUrl']?.toString();
-
-        if (checkoutUrl != null &&
-            checkoutUrl.isNotEmpty) {
-
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => PayOsWebViewScreen(
-                checkoutUrl: checkoutUrl,
-              ),
-            ),
-          );
-
+        if (!mounted) {
           return;
         }
-        if (!mounted) return;
 
         Navigator.pushReplacementNamed(
           context,
-          '/orders',
+          '/payment',
+          arguments: {
+            'order': order,
+            'checkoutUrl': checkoutUrl,
+          },
         );
-
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Lỗi đặt hàng: ${response.statusCode}')),
+          SnackBar(content: Text('Loi dat hang: ${response.statusCode}')),
         );
       }
     } finally {
@@ -294,29 +219,85 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    if (_cartItemIds.isEmpty) {
-      final args = ModalRoute.of(context)?.settings.arguments;
+  Future<void> _openPaymentLink(String checkoutUrl) async {
+    final uri = Uri.tryParse(checkoutUrl);
+    if (uri == null) {
+      return;
+    }
 
-      if (args is List) {
-        _cartItemIds = args.map((e) => e.toString()).toList();
+    final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!opened && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Khong mo duoc cong thanh toan PayOS')),
+      );
+    }
+  }
+
+  Map<String, dynamic>? _extractOrder(dynamic decoded) {
+    if (decoded is! Map<String, dynamic>) {
+      return null;
+    }
+
+    final data = decoded['data'];
+    final order = decoded['order'];
+    if (order is Map<String, dynamic>) {
+      return order;
+    }
+    if (data is Map<String, dynamic>) {
+      final nestedOrder = data['order'];
+      if (nestedOrder is Map<String, dynamic>) {
+        return nestedOrder;
+      }
+      return data;
+    }
+    return decoded;
+  }
+
+  String? _extractCheckoutUrl(dynamic decoded) {
+    if (decoded is! Map<String, dynamic>) {
+      return null;
+    }
+
+    for (final key in [
+      'checkoutUrl',
+      'checkout_url',
+      'paymentUrl',
+      'payment_url',
+      'payosCheckoutUrl',
+      'payos_checkout_url',
+    ]) {
+      final value = decoded[key]?.toString();
+      if (value != null && value.startsWith('http')) {
+        return value;
       }
     }
+
+    final data = decoded['data'];
+    final order = decoded['order'];
+    if (data is Map<String, dynamic>) {
+      return _extractCheckoutUrl(data);
+    }
+    if (order is Map<String, dynamic>) {
+      return _extractCheckoutUrl(order);
+    }
+    return null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Đặt hàng'),
+        title: const Text('Dat hang'),
         backgroundColor: _wine,
         foregroundColor: Colors.white,
       ),
-
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: _wine))
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
                 const Text(
-                  'Địa chỉ giao hàng',
+                  'Dia chi giao hang',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 12),
@@ -327,32 +308,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       setState(() => _showNewAddressForm = true);
                     },
                     icon: const Icon(Icons.add_location_alt),
-                    label: const Text('Thêm địa chỉ mới'),
+                    label: const Text('Them dia chi moi'),
                   ),
                 ],
-
                 if (_showNewAddressForm) _newAddressForm(),
                 const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  value: _selectedVoucherCode,
+                TextField(
+                  controller: _voucherController,
                   decoration: const InputDecoration(
-                    labelText: 'Chọn voucher',
+                    labelText: 'Voucher code',
                     border: OutlineInputBorder(),
                   ),
-                  items: _vouchers.map<DropdownMenuItem<String>>((voucher) {
-                    return DropdownMenuItem<String>(
-                      value: voucher['code']?.toString(),
-                      child: Text(
-                        '${voucher['code']} - Giảm ${voucher['discountValue']}',
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedVoucherCode = value;
-                    });
-                  },
                 ),
                 const SizedBox(height: 20),
                 ElevatedButton.icon(
@@ -363,7 +329,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ),
                   onPressed: _checkout,
                   icon: const Icon(Icons.check_circle),
-                  label: const Text('Xác nhận đặt hàng'),
+                  label: const Text('Xac nhan dat hang'),
                 ),
               ],
             ),
@@ -400,77 +366,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       children: [
         _field(_receiverController, 'Nguoi nhan'),
         _field(_phoneController, 'So dien thoai'),
-
-        Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: DropdownButtonFormField<dynamic>(
-            value: _selectedProvince,
-            decoration: const InputDecoration(
-              labelText: 'Tinh/Thanh pho',
-              border: OutlineInputBorder(),
-            ),
-            items: _provinces.map((province) {
-              return DropdownMenuItem(
-                value: province,
-                child: Text(province['name']),
-              );
-            }).toList(),
-            onChanged: (value) {
-              setState(() {
-                _selectedProvince = value;
-              });
-
-              _loadDistricts(value['code']);
-            },
-          ),
-        ),
-
-        Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: DropdownButtonFormField<dynamic>(
-            value: _selectedDistrict,
-            decoration: const InputDecoration(
-              labelText: 'Quan/Huyen',
-              border: OutlineInputBorder(),
-            ),
-            items: _districts.map((district) {
-              return DropdownMenuItem(
-                value: district,
-                child: Text(district['name']),
-              );
-            }).toList(),
-            onChanged: (value) {
-              setState(() {
-                _selectedDistrict = value;
-              });
-
-              _loadWards(value['code']);
-            },
-          ),
-        ),
-
-        Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: DropdownButtonFormField<dynamic>(
-            value: _selectedWard,
-            decoration: const InputDecoration(
-              labelText: 'Phuong/Xa',
-              border: OutlineInputBorder(),
-            ),
-            items: _wards.map((ward) {
-              return DropdownMenuItem(
-                value: ward,
-                child: Text(ward['name']),
-              );
-            }).toList(),
-            onChanged: (value) {
-              setState(() {
-                _selectedWard = value;
-              });
-            },
-          ),
-        ),
-
+        _field(_provinceController, 'Tinh/Thanh pho'),
+        _field(_districtController, 'Quan/Huyen'),
+        _field(_wardController, 'Phuong/Xa'),
         _field(_detailController, 'Dia chi chi tiet'),
       ],
     );
@@ -487,34 +385,5 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         ),
       ),
     );
-  }
-
-  Future<void> _loadVouchers() async {
-    try {
-      final baseUrl = ApiConfig.getBaseUrl(context);
-
-      final response = await http.get(
-        Uri.parse('$baseUrl/vouchers'),
-        headers: apiHeaders(),
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-
-        setState(() {
-          _vouchers = decodeListPayload(data)
-              .where(
-                (v) =>
-            (v['status'] ?? '')
-                .toString()
-                .toUpperCase() ==
-                'ACTIVE',
-          )
-              .toList();
-        });
-      }
-    } catch (e) {
-      debugPrint('Không thể tải danh sách voucher: $e');
-    }
   }
 }

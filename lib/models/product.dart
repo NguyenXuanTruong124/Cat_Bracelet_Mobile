@@ -1,3 +1,5 @@
+import '../services/api_helpers.dart';
+
 class Product {
   final String id;
   final String? categoryId;
@@ -43,7 +45,7 @@ class Product {
           (json['productName'] ?? json['product_name'] ?? 'San pham khong ten')
               .toString(),
       basePrice: _toInt(json['basePrice'] ?? json['base_price']),
-      thumbnail: json['thumbnail']?.toString(),
+      thumbnail: readThumbnailPath(json),
       description: json['description']?.toString(),
       status: (json['status'] ?? 'INACTIVE').toString(),
     );
