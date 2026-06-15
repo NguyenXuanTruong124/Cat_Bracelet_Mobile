@@ -109,6 +109,7 @@ class _CartScreenState extends State<CartScreen> {
                   readThumbnailPath(product) ?? readThumbnailPath(item),
                 );
 
+                
                 return Card(
                   child: Padding(
                     padding: const EdgeInsets.all(12),
