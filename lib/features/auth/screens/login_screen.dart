@@ -30,8 +30,8 @@ class _LoginScreenState extends State<LoginScreen> {
     final password = _passwordController.text;
 
     if (email.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui lòng nhập email và mật khẩu')),
+      _showMessage(
+        message: 'Vui lòng nhập email và mật khẩu',
       );
       return;
     }
@@ -50,27 +50,41 @@ class _LoginScreenState extends State<LoginScreen> {
         body: jsonEncode({'email': email, 'password': password}),
       );
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
+      if (response.statusCode == 200 ||
+          response.statusCode == 201) {
+
         final decoded = jsonDecode(response.body);
+
         if (decoded is Map<String, dynamic>) {
           UserSession.setFromLogin(decoded);
         }
+
         if (!mounted) return;
-        Navigator.pushReplacementNamed(context, '/home');
+
+        _showMessage(
+          message: 'Đăng nhập thành công',
+          isError: false,
+        );
+
+        await Future.delayed(
+          const Duration(milliseconds: 800),
+        );
+
+        Navigator.pushReplacementNamed(
+          context,
+          '/home',
+        );
       } else {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Lỗi ${response.statusCode}: ${response.body}'),
-            duration: const Duration(seconds: 5),
-          ),
+        _showMessage(
+          message: 'Email hoặc mật khẩu không chính xác',
         );
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Lỗi kết nối tới Server: $e')));
+      _showMessage(
+        message: 'Không thể kết nối tới máy chủ',
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -79,7 +93,47 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     }
   }
-
+  void _showMessage({
+    required String message,
+    bool isError = true,
+  }) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          backgroundColor:
+          isError ? const Color(0xFF8B3A3A) : LoginScreen._wine,
+          elevation: 8,
+          margin: const EdgeInsets.all(16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
+          content: Row(
+            children: [
+              Icon(
+                isError
+                    ? Icons.error_outline_rounded
+                    : Icons.check_circle_outline_rounded,
+                color: LoginScreen._gold,
+                size: 24,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  message,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 15,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+  }
   @override
   void dispose() {
     _emailController.dispose();

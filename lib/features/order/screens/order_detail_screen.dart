@@ -71,19 +71,19 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Chi tiet don hang'),
+        title: const Text('Chi tiết đơn hàng'),
         backgroundColor: _wine,
         foregroundColor: Colors.white,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: _wine))
           : order == null
-          ? const Center(child: Text('Khong tai duoc don hang'))
+          ? const Center(child: Text('Không tải được đơn hàng'))
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
                 Text(
-                  'Don #${order['id']}',
+                  'Đơn #${order['id']}',
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -102,7 +102,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     order['paymentStatus'],
                   ),
                 ),
-                Text('Tong tien: ${_price(order['totalAmount'])}'),
+                Text('Tổng tiền: ${_price(order['totalAmount'])}'),
                 const SizedBox(height: 16),
                 if (order['canRetryPayment'] == true)
                   SizedBox(
@@ -145,7 +145,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 if (address != null) ...[
                   const SizedBox(height: 16),
                   const Text(
-                    'Dia chi giao hang',
+                    'Địa chỉ nhận hàng',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   Text(
@@ -154,7 +154,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 ],
                 const SizedBox(height: 16),
                 const Text(
-                  'San pham',
+                  'Sản phẩm',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
@@ -171,14 +171,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
                   final productName =
                       product?['productName'] ??
-                          'San pham';
+                          'Sản phẩm';
                   return Card(
                     child: ListTile(
                       title: Text(productName),
                       subtitle: Text(
                         'Mau: ${variant?['color'] ?? ''}'
                             '\nSize: ${variant?['size'] ?? ''}'
-                            '\nSo luong: ${item['quantity'] ?? 0}',
+                            '\nSố lượng: ${item['quantity'] ?? 0}',
                       ),
                       trailing: Text(_price(item['totalPrice'])),
                     ),

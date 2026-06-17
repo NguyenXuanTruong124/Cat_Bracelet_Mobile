@@ -127,11 +127,11 @@ class VoucherCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   type == 'PERCENT'
-                      ? 'Giam $discount%'
-                      : 'Giam ${discount ?? 0}d',
+                      ? 'Giảm $discount%'
+                      : 'Giảm ${discount ?? 0}d',
                 ),
                 Text(
-                  'Han dung: ${voucher['endDate'] ?? ''}',
+                  'Hạn sử dụng: ${voucher['endDate'] ?? ''}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(color: Colors.black54),

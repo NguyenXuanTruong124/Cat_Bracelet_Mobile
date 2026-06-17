@@ -20,7 +20,7 @@ class PaymentScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Thanh toan'),
+        title: const Text('Thanh toán'),
         backgroundColor: _wine,
         foregroundColor: Colors.white,
       ),
@@ -32,22 +32,22 @@ class PaymentScreen extends StatelessWidget {
             const Icon(Icons.check_circle, color: Colors.green, size: 72),
             const SizedBox(height: 16),
             Text(
-              'Don hang da duoc tao',
+              'Đơn hàng đã được tạo',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             const SizedBox(height: 8),
             Text(
-              'Ma don: ${order?['id'] ?? 'N/A'}',
+              'Mã đơn: ${order?['id'] ?? 'N/A'}',
               textAlign: TextAlign.center,
             ),
-            Text('Tong thanh toan: $total', textAlign: TextAlign.center),
+            Text('Tổng thanh toán: $total', textAlign: TextAlign.center),
             const SizedBox(height: 24),
             OutlinedButton.icon(
               onPressed: () =>
                   Navigator.pushReplacementNamed(context, '/orders'),
               icon: const Icon(Icons.receipt_long),
-              label: const Text('Xem lich su don hang'),
+              label: const Text('Xem lịch sử đơn hàng'),
             ),
             const SizedBox(height: 12),
             ElevatedButton.icon(
@@ -61,7 +61,7 @@ class PaymentScreen extends StatelessWidget {
                 (route) => false,
               ),
               icon: const Icon(Icons.home),
-              label: const Text('Ve trang chu'),
+              label: const Text('Về trang chủ'),
             ),
           ],
         ),

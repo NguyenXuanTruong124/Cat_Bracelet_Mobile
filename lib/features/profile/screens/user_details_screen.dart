@@ -22,7 +22,6 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
   static const Color _wine = AppColors.wine;
 
   final _nameController = TextEditingController();
-  final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _avatarController = TextEditingController();
 
@@ -38,7 +37,6 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
   @override
   void dispose() {
     _nameController.dispose();
-    _emailController.dispose();
     _phoneController.dispose();
     _avatarController.dispose();
     super.dispose();
@@ -46,7 +44,6 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
 
   void _fill(AppUser? user) {
     _nameController.text = user?.fullName ?? '';
-    _emailController.text = user?.email ?? '';
     _phoneController.text = user?.phone ?? '';
     _avatarController.text = user?.avatar ?? '';
   }
@@ -93,7 +90,6 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
         headers: apiHeaders(json: true),
         body: jsonEncode({
           'fullName': _nameController.text.trim(),
-          'email': _emailController.text.trim(),
           'phone': _phoneController.text.trim(),
           'avatar': _avatarController.text.trim(),
         }),
@@ -258,7 +254,6 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
             Center(child: Text(user!.vipBenefits!)),
           const SizedBox(height: 20),
           _field(_nameController, 'Họ tên', Icons.person),
-          _field(_emailController, 'Email', Icons.mail),
           _field(_phoneController, 'Số điện thoại', Icons.phone),
 
           OutlinedButton.icon(

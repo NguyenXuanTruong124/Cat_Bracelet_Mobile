@@ -41,6 +41,20 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
       );
       if (response.statusCode == 200) {
         _orders = decodeListPayload(jsonDecode(response.body));
+
+        _orders.sort((a, b) {
+          final dateA = DateTime.tryParse(
+            a['createdAt']?.toString() ?? '',
+          ) ??
+              DateTime(1970);
+
+          final dateB = DateTime.tryParse(
+            b['createdAt']?.toString() ?? '',
+          ) ??
+              DateTime(1970);
+
+          return dateB.compareTo(dateA);
+        });
       }
     } finally {
       if (mounted) {

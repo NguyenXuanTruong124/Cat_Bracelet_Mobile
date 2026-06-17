@@ -126,7 +126,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
         }
 
         setState(() {
-          _errorMessage = 'Loi tai du lieu: ${response.statusCode}';
+          _errorMessage = 'Lỗi tải dữ liệu: ${response.statusCode}';
           _isLoading = false;
         });
       }
@@ -136,7 +136,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
       }
 
       setState(() {
-        _errorMessage = 'Khong the ket noi den may chu';
+        _errorMessage = 'Không thể kết nối đến máy chủ.';
         _isLoading = false;
       });
     }
@@ -366,14 +366,14 @@ class _CollectionScreenState extends State<CollectionScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Bo suu tap',
+          'Bộ sưu tập',
           style: TextStyle(fontFamily: 'serif', fontWeight: FontWeight.bold),
         ),
         backgroundColor: _wine,
         foregroundColor: Colors.white,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          tooltip: 'Quay lai',
+          tooltip: 'Quay lại',
           onPressed: () {
             Navigator.pushAndRemoveUntil(
               context,
@@ -400,7 +400,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
             onPressed: () {
               ScaffoldMessenger.of(
                 context,
-              ).showSnackBar(const SnackBar(content: Text('Di toi gio hang')));
+              ).showSnackBar(const SnackBar(content: Text('Đi về giỏ hàng')));
               Navigator.pushNamed(context, '/cart');
             },
           ),
@@ -457,7 +457,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
               textInputAction: TextInputAction.search,
               onSubmitted: (_) => _fetchProducts(useFilter: true),
               decoration: _inputDecoration(
-                label: 'Tim theo ten',
+                label: 'Tìm kiếm',
                 icon: Icons.search,
               ),
             ),
@@ -610,7 +610,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
         controller: controller,
         decoration: _inputDecoration(label: label).copyWith(
           suffixIcon: PopupMenuButton<String>(
-            tooltip: 'Chon $label',
+            tooltip: 'Chọn $label',
             icon: const Icon(Icons.arrow_drop_down),
             onSelected: (value) {
               setState(() {
@@ -675,44 +675,44 @@ class _CollectionScreenState extends State<CollectionScreen> {
                         _fetchProducts(useFilter: true);
                       },
                       icon: const Icon(Icons.search),
-                      label: const Text('Tim kiem'),
+                      label: const Text('Tìm kiếm'),
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  _buildSheetFilterTextField(
-                    controller: _colorController,
-                    label: 'Mau',
-                    suggestions: _colors,
-                    setModalState: setModalState,
-                  ),
-                  const SizedBox(height: 12),
-                  _buildSheetFilterTextField(
-                    controller: _stoneColorController,
-                    label: 'Mau da',
-                    suggestions: _stoneColors,
-                    setModalState: setModalState,
-                  ),
-                  const SizedBox(height: 12),
-                  _buildSheetFilterTextField(
-                    controller: _stoneTypeController,
-                    label: 'Loai da',
-                    suggestions: _stoneTypes,
-                    setModalState: setModalState,
-                  ),
-                  const SizedBox(height: 12),
-                  _buildSheetDropdown(
-                    value: _selectedSize,
-                    label: 'Size',
-                    items: _sizes,
-                    onChanged: (value) {
-                      setModalState(() => _selectedSize = value);
-                      setState(() => _selectedSize = value);
-                    },
-                  ),
+                  // const SizedBox(height: 12),
+                  // _buildSheetFilterTextField(
+                  //   controller: _colorController,
+                  //   label: 'Màu',
+                  //   suggestions: _colors,
+                  //   setModalState: setModalState,
+                  // ),
+                  // const SizedBox(height: 12),
+                  // _buildSheetFilterTextField(
+                  //   controller: _stoneColorController,
+                  //   label: 'Màu đá',
+                  //   suggestions: _stoneColors,
+                  //   setModalState: setModalState,
+                  // ),
+                  // const SizedBox(height: 12),
+                  // _buildSheetFilterTextField(
+                  //   controller: _stoneTypeController,
+                  //   label: 'Loại đá',
+                  //   suggestions: _stoneTypes,
+                  //   setModalState: setModalState,
+                  // ),
+                  // const SizedBox(height: 12),
+                  // _buildSheetDropdown(
+                  //   value: _selectedSize,
+                  //   label: 'Size',
+                  //   items: _sizes,
+                  //   onChanged: (value) {
+                  //     setModalState(() => _selectedSize = value);
+                  //     setState(() => _selectedSize = value);
+                  //   },
+                  // ),
                   const SizedBox(height: 12),
                   _buildSheetDropdown(
                     value: _selectedCategory,
-                    label: 'Danh muc',
+                    label: 'Danh mục',
                     items: _categories,
                     onChanged: (value) {
                       setModalState(() => _selectedCategory = value);
@@ -722,7 +722,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
                   const SizedBox(height: 12),
                   _buildSheetDropdown(
                     value: _selectedMaterial,
-                    label: 'Chat lieu',
+                    label: 'Chất liệu',
                     items: _materials,
                     onChanged: (value) {
                       setModalState(() => _selectedMaterial = value);
@@ -736,7 +736,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
                         child: TextField(
                           controller: _minPriceController,
                           keyboardType: TextInputType.number,
-                          decoration: _inputDecoration(label: 'Gia tu'),
+                          decoration: _inputDecoration(label: 'Giá từ'),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -744,7 +744,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
                         child: TextField(
                           controller: _maxPriceController,
                           keyboardType: TextInputType.number,
-                          decoration: _inputDecoration(label: 'Gia den'),
+                          decoration: _inputDecoration(label: 'Đến'),
                         ),
                       ),
                     ],
@@ -759,7 +759,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
                             _clearFilters();
                           },
                           icon: const Icon(Icons.close),
-                          label: const Text('Xoa loc'),
+                          label: const Text('Xóa lọc'),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -774,7 +774,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
                             _fetchProducts(useFilter: true);
                           },
                           icon: const Icon(Icons.filter_alt),
-                          label: const Text('Loc'),
+                          label: const Text('Lọc'),
                         ),
                       ),
                     ],
@@ -817,7 +817,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
       controller: controller,
       decoration: _inputDecoration(label: label).copyWith(
         suffixIcon: PopupMenuButton<String>(
-          tooltip: 'Chon $label',
+          tooltip: 'Chọn $label',
           icon: const Icon(Icons.arrow_drop_down),
           onSelected: (value) {
             setModalState(() {

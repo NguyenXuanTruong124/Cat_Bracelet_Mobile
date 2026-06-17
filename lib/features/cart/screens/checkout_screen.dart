@@ -567,7 +567,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             await _calculateShippingFee(id);
           }
         },
-        title: Text(address['receiverName']?.toString() ?? 'Nguoi nhan'),
+        title: Text(address['receiverName']?.toString() ?? 'Người nhận'),
         subtitle: Text(
           '${address['phone'] ?? ''}\n${address['detailAddress'] ?? ''}, ${address['ward'] ?? ''}, ${address['district'] ?? ''}, ${address['province'] ?? ''}',
         ),
@@ -578,15 +578,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Widget _newAddressForm() {
     return Column(
       children: [
-        _field(_receiverController, 'Nguoi nhan'),
-        _field(_phoneController, 'So dien thoai'),
+        _field(_receiverController, 'Người nhận'),
+        _field(_phoneController, 'Số điện thoại'),
 
         Padding(
           padding: const EdgeInsets.only(bottom: 10),
           child: DropdownButtonFormField<dynamic>(
             value: _selectedProvince,
             decoration: const InputDecoration(
-              labelText: 'Tinh/Thanh pho',
+              labelText: 'Tỉnh/Thành Phố',
               border: OutlineInputBorder(),
             ),
             items: _provinces.map((province) {
@@ -610,7 +610,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           child: DropdownButtonFormField<dynamic>(
             value: _selectedDistrict,
             decoration: const InputDecoration(
-              labelText: 'Quan/Huyen',
+              labelText: 'Quận/Huyện',
               border: OutlineInputBorder(),
             ),
             items: _districts.map((district) {
@@ -634,7 +634,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           child: DropdownButtonFormField<dynamic>(
             value: _selectedWard,
             decoration: const InputDecoration(
-              labelText: 'Phuong/Xa',
+              labelText: 'Phường/xã',
               border: OutlineInputBorder(),
             ),
             items: _wards.map((ward) {
@@ -648,7 +648,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ),
         ),
 
-        _field(_detailController, 'Dia chi chi tiet'),
+        _field(_detailController, 'Địa chỉ chi tiết'),
       ],
     );
   }

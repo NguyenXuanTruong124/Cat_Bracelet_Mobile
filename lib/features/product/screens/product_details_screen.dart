@@ -99,7 +99,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
       }
 
       setState(() {
-        _errorMessage = 'Kh?ng th? t?i chi ti?t s?n ph?m';
+        _errorMessage = 'Không thể tải thông tin sản phẩm.';
         _isLoading = false;
       });
     }
@@ -153,7 +153,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
     if (_selectedVariant == null) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Vui long chon bien the')));
+      ).showSnackBar(const SnackBar(content: Text('Vui lòng chọn biến thể')));
       return;
     }
 
@@ -173,7 +173,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
         _showAddedToCart();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Khong the them gio: ${response.statusCode}')),
+          SnackBar(content: Text('Không thể thêm vào giỏ: ${response.statusCode}')),
         );
       }
     } catch (_) {
@@ -181,23 +181,58 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Khong the ket noi gio hang')),
+        const SnackBar(content: Text('Không thể thêm vào giỏ hàng')),
       );
     }
   }
 
   void _showAddedToCart() {
-    final variantText = _selectedVariant == null
-        ? ''
-        : ' - ${_selectedVariant!.color ?? ''} ${_selectedVariant!.size ?? ''}'
-              .trimRight();
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('${_product.productName}$variantText da them vao gio'),
-        backgroundColor: _wine,
-      ),
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withOpacity(0.2),
+      barrierDismissible: false,
+      builder: (_) {
+        return Center(
+          child: Container(
+            width: 180,
+            padding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 24,
+            ),
+            decoration: BoxDecoration(
+              color: Colors.black87,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.check_circle_rounded,
+                  color: Colors.greenAccent,
+                  size: 52,
+                ),
+                SizedBox(height: 11),
+                Text(
+                  'Đã thêm vào giỏ hàng',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
+
+    Future.delayed(const Duration(milliseconds: 1500), () {
+      if (mounted && Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
+    });
   }
 
   @override
@@ -207,7 +242,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Chi tiet san pham',
+          'Chi tiết sản phẩm',
           style: TextStyle(fontFamily: 'serif', fontWeight: FontWeight.bold),
         ),
         backgroundColor: _wine,
@@ -322,7 +357,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                           : null,
                       icon: const Icon(Icons.add_shopping_cart),
                       label: const Text(
-                        'Th?m v?o gi? h?ng',
+                        'Thêm vào giỏ hàng',
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
@@ -345,7 +380,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
           borderRadius: BorderRadius.circular(8),
           border: Border.all(color: _gold.withValues(alpha: 0.35)),
         ),
-        child: const Text('San pham hien chua co bien the.'),
+        child: const Text('Sản phẩm không có biến thể'),
       );
     }
 
@@ -353,7 +388,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Chon bien the',
+          'Chọn biến thể:',
           style: TextStyle(
             fontSize: 17,
             fontWeight: FontWeight.bold,
@@ -396,7 +431,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
         if (_selectedVariant != null) ...[
           const SizedBox(height: 12),
           Text(
-            'Ton kho: ${_selectedVariant!.stock}',
+            'Tồn kho: ${_selectedVariant!.stock}',
             style: const TextStyle(color: Color(0xFF6B5E56), fontSize: 13),
           ),
         ],
