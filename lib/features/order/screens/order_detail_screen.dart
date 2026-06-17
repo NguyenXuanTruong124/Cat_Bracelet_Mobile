@@ -7,6 +7,9 @@ import 'package:intl/intl.dart';
 import '../../../core/config/api_config.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/services/api_helpers.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import '../../../core/services/payment_service.dart';
 
 class OrderDetailScreen extends StatefulWidget {
   final String orderId;
@@ -30,6 +33,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   }
 
   Future<void> _fetchOrder() async {
+    if (mounted) {
+      setState(() => _isLoading = true);
+    }
+
     try {
       final baseUrl = ApiConfig.getBaseUrl(context);
       final response = await http.get(
@@ -61,7 +68,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     final order = _order;
     final items = decodeListPayload(order?['items']);
     final address = order?['address'] as Map<String, dynamic>?;
-    final baseUrl = ApiConfig.getBaseUrl(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -84,8 +90,58 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Text('Trang thai: ${order['status'] ?? ''}'),
+                Chip(
+                  label: Text(
+                    order['paymentStatus'] ?? '',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  backgroundColor: _paymentStatusColor(
+                    order['paymentStatus'],
+                  ),
+                ),
                 Text('Tong tien: ${_price(order['totalAmount'])}'),
+                const SizedBox(height: 16),
+                if (order['canRetryPayment'] == true)
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
+                      ),
+                      onPressed: () async {
+                        try {
+                          final payment =
+                          await PaymentService().retryPayment(
+                            context,
+                            order['id'],
+                          );
+
+                          await launchUrl(
+                            Uri.parse(payment.checkoutUrl),
+                            mode: LaunchMode.externalApplication,
+                          );
+
+                        } catch (e) {
+                          if (!mounted) return;
+
+                          ScaffoldMessenger.of(context)
+                              .showSnackBar(
+                            SnackBar(
+                              content: Text(e.toString()),
+                            ),
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.payment),
+                      label: const Text(
+                        'THANH TOÁN LẠI',
+                      ),
+                    ),
+                  ),
                 if (address != null) ...[
                   const SizedBox(height: 16),
                   const Text(
@@ -104,44 +160,26 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 const SizedBox(height: 8),
                 ...items.map((rawItem) {
                   final item = rawItem as Map<String, dynamic>;
-                  final variant = asStringMap(item['variant']);
-                  final product = readProductPayload(item);
-                  final thumbnail = buildImageUrl(
-                    baseUrl,
-                    readThumbnailPath(product) ?? readThumbnailPath(item),
-                  );
+                  final variant = item['variant'] as Map<String, dynamic>?;
+                  final mappings =
+                  variant?['productVariantMappings'] as List?;
+
+                  final product =
+                  mappings?.isNotEmpty == true
+                      ? mappings!.first['product']
+                      : null;
+
+                  final productName =
+                      product?['productName'] ??
+                          'San pham';
                   return Card(
                     child: ListTile(
-                      leading: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: SizedBox(
-                          width: 56,
-                          height: 56,
-                          child: thumbnail.isEmpty
-                              ? const ColoredBox(
-                                  color: Color(0xFFFFF8F7),
-                                  child: Icon(Icons.image_not_supported),
-                                )
-                              : Image.network(
-                                  thumbnail,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) =>
-                                      const ColoredBox(
-                                        color: Color(0xFFFFF8F7),
-                                        child: Icon(Icons.image_not_supported),
-                                      ),
-                                ),
-                        ),
+                      title: Text(productName),
+                      subtitle: Text(
+                        'Mau: ${variant?['color'] ?? ''}'
+                            '\nSize: ${variant?['size'] ?? ''}'
+                            '\nSo luong: ${item['quantity'] ?? 0}',
                       ),
-                      title: Text(
-                        '${variant?['color'] ?? ''} ${variant?['size'] ?? ''}'
-                                .trim()
-                                .isEmpty
-                            ? 'Bien the san pham'
-                            : '${variant?['color'] ?? ''} ${variant?['size'] ?? ''}'
-                                  .trim(),
-                      ),
-                      subtitle: Text('So luong: ${item['quantity'] ?? 0}'),
                       trailing: Text(_price(item['totalPrice'])),
                     ),
                   );
@@ -149,5 +187,21 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               ],
             ),
     );
+  }
+  Color _paymentStatusColor(String? status) {
+    switch ((status ?? '').toUpperCase()) {
+      case 'PAID':
+        return Colors.green;
+
+      case 'PENDING':
+        return Colors.orange;
+
+      case 'FAILED':
+      case 'CANCELLED':
+        return Colors.red;
+
+      default:
+        return Colors.grey;
+    }
   }
 }
