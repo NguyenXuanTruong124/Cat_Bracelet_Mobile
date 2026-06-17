@@ -5,6 +5,7 @@ import '../../../core/config/api_config.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../profile/models/user_session.dart';
 import 'package:flutter/gestures.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -130,17 +131,17 @@ class _LoginScreenState extends State<LoginScreen> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           const _LoginHeader(),
-                          const SizedBox(height: 58),
+                          SizedBox(height: 58.h),
                           _LoginForm(
                             emailController: _emailController,
                             passwordController: _passwordController,
                           ),
-                          const SizedBox(height: 36),
+                          SizedBox(height: 36.h),
                           _PrimaryButton(
                             isLoading: _isLoading,
                             onPressed: _handleLogin,
                           ),
-                          const SizedBox(height: 42),
+                          SizedBox(height: 42.h),
                           const _RegisterPrompt(),
                         ],
                       ),
@@ -161,7 +162,7 @@ class _LoginHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Column(
+    return Column(
       children: [
         Text(
           'Cat Bracelet',
@@ -169,18 +170,18 @@ class _LoginHeader extends StatelessWidget {
           style: TextStyle(
             color: LoginScreen._wine,
             fontFamily: 'serif',
-            fontSize: 36,
+            fontSize: 36.sp,
             fontWeight: FontWeight.w800,
             height: 1.05,
           ),
         ),
         SizedBox(height: 18),
         Text(
-          'Năng lượng tinh khiết, phong\ncách tinh tế',
+          'Năng lượng tinh khiết\n phong cách tinh tế',
           textAlign: TextAlign.center,
           style: TextStyle(
             color: Color(0xFFA08E8C),
-            fontSize: 21,
+            fontSize: 21.sp,
             fontWeight: FontWeight.w600,
             height: 1.42,
           ),
@@ -243,13 +244,13 @@ class _LoginFormState extends State<_LoginForm> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const _FieldLabel('EMAIL'),
-        const SizedBox(height: 13),
+        const SizedBox(height: 5),
         _InputBox(
           controller: widget.emailController,
           icon: Icons.mail_outline_rounded,
           hintText: 'Nhập địa chỉ email',
         ),
-        const SizedBox(height: 34),
+        const SizedBox(height: 20),
         const Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.end,
@@ -267,7 +268,7 @@ class _LoginFormState extends State<_LoginForm> {
             ),
           ],
         ),
-        const SizedBox(height: 13),
+        const SizedBox(height: 5),
         _InputBox(
           controller: widget.passwordController,
           icon: Icons.lock_outline_rounded,
@@ -349,24 +350,24 @@ class _InputBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 80,
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+      height: 80.h,
+      padding: EdgeInsets.symmetric(horizontal: 24.w),
       decoration: BoxDecoration(
         color: LoginScreen._softRose,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(22.r),
         border: Border.all(color: LoginScreen._roseBorder, width: 1.5),
       ),
       child: Row(
         children: [
-          Icon(icon, color: LoginScreen._roseBorder, size: 30),
-          const SizedBox(width: 16),
+          Icon(icon, size: 30.sp),
+          SizedBox(width: 16.w),
           Expanded(
             child: TextField(
               controller: controller,
               obscureText: obscureText,
-              style: const TextStyle(
+              style: TextStyle(
                 color: LoginScreen._wine,
-                fontSize: 21,
+                fontSize: 21.sp,
                 fontWeight: FontWeight.w700,
               ),
               decoration: InputDecoration(
@@ -374,7 +375,7 @@ class _InputBox extends StatelessWidget {
                 hintText: hintText,
                 hintStyle: TextStyle(
                   color: LoginScreen._roseBorder.withValues(alpha: 0.92),
-                  fontSize: 21,
+                  fontSize: 21.sp,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -398,17 +399,17 @@ class _PrimaryButton extends StatelessWidget {
     return GestureDetector(
       onTap: isLoading ? null : onPressed,
       child: Container(
-        height: 70,
+        height: 70.h,
         decoration: BoxDecoration(
           color: isLoading
               ? LoginScreen._wine.withValues(alpha: 0.6)
               : LoginScreen._wine,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(20.r),
           boxShadow: [
             if (!isLoading)
               BoxShadow(
                 color: LoginScreen._wine.withValues(alpha: 0.22),
-                blurRadius: 22,
+                blurRadius: 22.r,
                 offset: const Offset(0, 12),
               ),
           ],

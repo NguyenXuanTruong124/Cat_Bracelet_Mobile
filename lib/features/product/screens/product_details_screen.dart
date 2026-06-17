@@ -322,7 +322,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                           : null,
                       icon: const Icon(Icons.add_shopping_cart),
                       label: const Text(
-                        'Them vao gio hang',
+                        'Th?m v?o gi? h?ng',
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,

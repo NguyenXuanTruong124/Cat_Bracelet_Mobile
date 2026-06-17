@@ -101,7 +101,7 @@ class _CartScreenState extends State<CartScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: _wine))
           : items.isEmpty
-          ? const Center(child: Text('Gio hang dang trong'))
+          ? const Center(child: Text('Giỏ hàng đang trống'))
           : ListView.separated(
               padding: const EdgeInsets.all(16),
               itemCount: items.length,
@@ -142,7 +142,7 @@ class _CartScreenState extends State<CartScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                (product?['productName'] ?? 'San pham')
+                                (product?['productName'] ?? 'Sản phẩm')
                                     .toString(),
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
@@ -198,7 +198,7 @@ class _CartScreenState extends State<CartScreen> {
             children: [
               Expanded(
                 child: Text(
-                  'Tong: ${_price(_cart?['totalPrice'])}',
+                  'Tổng: ${_price(_cart?['totalPrice'])}',
                   style: const TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.bold,
@@ -213,22 +213,14 @@ class _CartScreenState extends State<CartScreen> {
                 onPressed: items.isEmpty
                     ? null
                     : () {
-                  final cartItemIds = items
-                      .map<String>(
-                        (e) => ((e as Map<String, dynamic>)['cartItemId'] ??
-                        e['id'])
-                        .toString(),
-                  )
-                      .toList();
-
                   Navigator.pushNamed(
                     context,
                     '/checkout',
-                    arguments: cartItemIds,
+                    arguments: _cart,
                   );
                 },
                 icon: const Icon(Icons.payments),
-                label: const Text('Dat hang'),
+                label: const Text('Đặt hàng'),
               ),
             ],
           ),

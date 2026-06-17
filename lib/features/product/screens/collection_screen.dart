@@ -11,6 +11,7 @@ import '../models/product_variants.dart';
 import '../../../core/services/api_helpers.dart';
 import '../../home/screens/home_screen.dart';
 import 'product_details_screen.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class CollectionScreen extends StatefulWidget {
   final String? initialSearch;
@@ -427,7 +428,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
                       crossAxisCount: crossAxisCount,
                       crossAxisSpacing: 16,
                       mainAxisSpacing: 16,
-                      childAspectRatio: screenWidth < 600 ? 0.66 : 0.75,
+                      childAspectRatio: screenWidth < 600 ? 0.55 : 0.75,
                     ),
                     itemBuilder: (context, index) {
                       return _buildProductCard(_products[index]);
@@ -839,17 +840,19 @@ class _CollectionScreenState extends State<CollectionScreen> {
     final imageUrl = _getImageUrl(product.thumbnail);
 
     return InkWell(
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(12.r),
       onTap: () => _openDetails(product),
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: _gold.withValues(alpha: 0.3)),
+          borderRadius: BorderRadius.circular(12.r),
+          border: Border.all(
+            color: _gold.withValues(alpha: 0.3),
+          ),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
+              blurRadius: 10.r,
               offset: const Offset(0, 4),
             ),
           ],
@@ -859,40 +862,46 @@ class _CollectionScreenState extends State<CollectionScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
-              flex: 6,
+              flex: 7,
               child: Container(
                 color: _softRose,
                 child: imageUrl.isNotEmpty
                     ? Image.network(
-                        imageUrl,
-                        fit: BoxFit.cover,
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) {
-                            return child;
-                          }
-                          return const Center(
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          );
-                        },
-                        errorBuilder: (context, error, stackTrace) {
-                          return const Icon(
-                            Icons.image_not_supported,
-                            color: Colors.grey,
-                            size: 40,
-                          );
-                        },
-                      )
-                    : const Icon(
-                        Icons.image_not_supported,
-                        color: Colors.grey,
-                        size: 40,
+                  imageUrl,
+                  fit: BoxFit.cover,
+                  loadingBuilder:
+                      (context, child, loadingProgress) {
+                    if (loadingProgress == null) {
+                      return child;
+                    }
+
+                    return const Center(
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
                       ),
+                    );
+                  },
+                  errorBuilder:
+                      (context, error, stackTrace) {
+                    return Icon(
+                      Icons.image_not_supported,
+                      color: Colors.grey,
+                      size: 40.sp,
+                    );
+                  },
+                )
+                    : Icon(
+                  Icons.image_not_supported,
+                  color: Colors.grey,
+                  size: 40.sp,
+                ),
               ),
             ),
+
             Expanded(
-              flex: 5,
+              flex: 4,
               child: Padding(
-                padding: const EdgeInsets.all(12),
+                padding: EdgeInsets.all(10.w),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -900,20 +909,22 @@ class _CollectionScreenState extends State<CollectionScreen> {
                       product.productName,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 14,
+                      style: TextStyle(
+                        fontSize: 12.sp,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF333333),
+                        color: const Color(0xFF333333),
                         height: 1.3,
                       ),
                     ),
 
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4.h),
 
                     Text(
                       _formatPrice(product.basePrice),
-                      style: const TextStyle(
-                        fontSize: 15,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 13.sp,
                         fontWeight: FontWeight.w800,
                         color: _wine,
                       ),
@@ -923,25 +934,39 @@ class _CollectionScreenState extends State<CollectionScreen> {
 
                     SizedBox(
                       width: double.infinity,
-                      child: ElevatedButton.icon(
+                      height: 34.h,
+                      child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: _wine,
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 4.w,
+                            vertical: 4.h,
                           ),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius:
+                            BorderRadius.circular(8.r),
                           ),
                         ),
                         onPressed: () => _openDetails(product),
-                        icon: const Icon(Icons.visibility, size: 18),
-                        label: const Text(
-                          'Xem chi tiet',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.visibility,
+                                size: 14.sp,
+                              ),
+                              SizedBox(width: 4.w),
+                              Text(
+                                'Chi tiết',
+                                style: TextStyle(
+                                  fontSize: 11.sp,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),

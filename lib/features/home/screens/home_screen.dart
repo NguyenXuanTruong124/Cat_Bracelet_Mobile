@@ -310,12 +310,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SliverToBoxAdapter(child: _HomeVoucherSection()),
           SliverToBoxAdapter(
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 1200),
-                child: HomeSections.buildFooter(),
-              ),
-            ),
+            child: HomeSections.buildFooter(),
           ),
         ],
       ),

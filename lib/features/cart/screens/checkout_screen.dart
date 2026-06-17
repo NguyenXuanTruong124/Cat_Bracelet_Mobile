@@ -1,5 +1,5 @@
 import 'dart:convert';
-
+import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../../../core/config/api_config.dart';
@@ -24,8 +24,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final _districtController = TextEditingController();
   final _wardController = TextEditingController();
   final _detailController = TextEditingController();
-
+  List<String> _cartItemIds = [];
   List<Map<String, dynamic>> _addresses = [];
+  Map<String, dynamic>? _cart;
+
+  double _subtotal = 0;
+  double _shippingFee = 0;
+  double _discount = 0;
+
   List<dynamic> _provinces = [];
   List<dynamic> _districts = [];
   List<dynamic> _wards = [];
@@ -37,11 +43,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   String? _selectedAddressId;
   bool _isLoading = true;
   bool _showNewAddressForm = false;
+  bool _isCalculatingShipping = false;
 
   List<dynamic> _vouchers = [];
   String? _selectedVoucherCode;
-
-  List<String> _cartItemIds = [];
 
   @override
   void initState() {
@@ -89,6 +94,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               orElse: () => addresses.isEmpty ? null : addresses.first,
             )?['id']
             ?.toString();
+        if (_selectedAddressId != null) {
+          await _calculateShippingFee(_selectedAddressId!);
+        }
       }
     } finally {
       if (mounted) {
@@ -117,9 +125,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Future<void> _loadDistricts(int provinceCode) async {
     try {
       final response = await http.get(
-        Uri.parse(
-          'https://provinces.open-api.vn/api/p/$provinceCode?depth=2',
-        ),
+        Uri.parse('https://provinces.open-api.vn/api/p/$provinceCode?depth=2'),
       );
 
       if (response.statusCode == 200) {
@@ -138,9 +144,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Future<void> _loadWards(int districtCode) async {
     try {
       final response = await http.get(
-        Uri.parse(
-          'https://provinces.open-api.vn/api/d/$districtCode?depth=2',
-        ),
+        Uri.parse('https://provinces.open-api.vn/api/d/$districtCode?depth=2'),
       );
 
       if (response.statusCode == 200) {
@@ -160,6 +164,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       return null;
     }
     if (!_showNewAddressForm) {
+      _receiverController.clear();
+      _phoneController.clear();
+      _detailController.clear();
+
+      _selectedProvince = null;
+      _selectedDistrict = null;
+      _selectedWard = null;
+
+      _districts.clear();
+      _wards.clear();
       return _selectedAddressId;
     }
 
@@ -201,7 +215,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     if (response.statusCode == 200 || response.statusCode == 201) {
       final decoded = jsonDecode(response.body);
       if (decoded is Map<String, dynamic>) {
-        return decoded['id']?.toString();
+        final newAddressId = decoded['id']?.toString();
+
+        if (newAddressId != null) {
+          await _calculateShippingFee(newAddressId);
+        }
+
+        return newAddressId;
       }
     }
 
@@ -220,7 +240,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         context,
       ).showSnackBar(const SnackBar(content: Text('Vui lòng đăng nhập')));
       return;
-
     }
 
     setState(() => _isLoading = true);
@@ -255,20 +274,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       if (response.statusCode == 200 || response.statusCode == 201) {
         final result = jsonDecode(response.body);
 
-        final payment =
-        result['payment'] as Map<String, dynamic>?;
+        final payment = result['payment'] as Map<String, dynamic>?;
 
-        final checkoutUrl =
-        payment?['checkoutUrl']?.toString();
+        final checkoutUrl = payment?['checkoutUrl']?.toString();
 
-        if (checkoutUrl != null &&
-            checkoutUrl.isNotEmpty) {
-
+        if (checkoutUrl != null && checkoutUrl.isNotEmpty) {
           Navigator.push(
             context,
             MaterialPageRoute(
               builder: (_) => PayOsWebViewScreen(
                 checkoutUrl: checkoutUrl,
+                orderCode: payment?['orderCode'] ?? 0,
               ),
             ),
           );
@@ -277,11 +293,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         }
         if (!mounted) return;
 
-        Navigator.pushReplacementNamed(
-          context,
-          '/orders',
-        );
-
+        Navigator.pushReplacementNamed(context, '/orders');
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Lỗi đặt hàng: ${response.statusCode}')),
@@ -296,11 +308,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_cartItemIds.isEmpty) {
+    if (_cart == null) {
       final args = ModalRoute.of(context)?.settings.arguments;
 
-      if (args is List) {
-        _cartItemIds = args.map((e) => e.toString()).toList();
+      if (args is Map<String, dynamic>) {
+        _cart = args;
+
+        _subtotal = (_cart!['totalPrice'] as num?)?.toDouble() ?? 0;
+
+        _cartItemIds = (_cart!['items'] as List)
+            .map<String>((e) => (e['cartItemId'] ?? e['id']).toString())
+            .toList();
       }
     }
     return Scaffold(
@@ -315,6 +333,34 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
+                const Text(
+                  'Sản phẩm',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+
+                const SizedBox(height: 12),
+
+                if (_cart != null)
+                  ...(_cart!['items'] as List).map((item) {
+                    final product = item['product'];
+                    final variant = item['variantDetails'];
+
+                    return Card(
+                      child: ListTile(
+                        title: Text(product['productName']),
+                        subtitle: Text(
+                          '${variant['color']} - ${variant['size']}\n'
+                          '${item['quantity']} x ${_money((item['unitPrice'] as num).toDouble())}',
+                        ),
+                        trailing: Text(
+                          _money((item['subTotal'] as num).toDouble()),
+                        ),
+                      ),
+                    );
+                  }),
+
+                const SizedBox(height: 20),
+
                 const Text(
                   'Địa chỉ giao hàng',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -331,7 +377,32 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ),
                 ],
 
-                if (_showNewAddressForm) _newAddressForm(),
+                if (_showNewAddressForm) ...[
+                  _newAddressForm(),
+
+                  const SizedBox(height: 12),
+
+                  ElevatedButton.icon(
+                    onPressed: () async {
+                      final newAddressId = await _createAddressIfNeeded();
+
+                      if (newAddressId == null) {
+                        return;
+                      }
+
+                      await _fetchAddresses();
+
+                      setState(() {
+                        _selectedAddressId = newAddressId;
+
+                        _showNewAddressForm = false;
+                      });
+                    },
+                    icon: const Icon(Icons.save),
+                    label: const Text('Lưu địa chỉ'),
+                  ),
+                ],
+
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
                   value: _selectedVoucherCode,
@@ -339,22 +410,127 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     labelText: 'Chọn voucher',
                     border: OutlineInputBorder(),
                   ),
-                  items: _vouchers.map<DropdownMenuItem<String>>((voucher) {
-                    return DropdownMenuItem<String>(
-                      value: voucher['code']?.toString(),
-                      child: Text(
-                        '${voucher['code']} - Giảm ${voucher['discountValue']}',
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    );
-                  }).toList(),
+                  items: [
+                    const DropdownMenuItem<String>(
+                      value: '',
+                      child: Text('Không sử dụng voucher'),
+                    ),
+
+                    ..._vouchers.map<DropdownMenuItem<String>>((voucher) {
+                      return DropdownMenuItem<String>(
+                        value: voucher['code']?.toString(),
+                        child: Text(
+                          '${voucher['code']} - Giảm ${voucher['discountValue']}',
+                        ),
+                      );
+                    }),
+                  ],
                   onChanged: (value) {
                     setState(() {
                       _selectedVoucherCode = value;
+
+                      // Không dùng voucher
+                      if (value == null || value.isEmpty) {
+                        _discount = 0;
+                        return;
+                      }
+
+                      final voucher = _vouchers
+                          .cast<Map<String, dynamic>>()
+                          .firstWhere(
+                            (v) => v['code'] == value,
+                            orElse: () => {},
+                          );
+
+                      final discountValue =
+                          double.tryParse(
+                            voucher['discountValue']?.toString() ?? '0',
+                          ) ??
+                          0;
+
+                      final discountType = voucher['discountType']
+                          ?.toString()
+                          .toUpperCase();
+
+                      if (discountType == 'PERCENT') {
+                        _discount =
+                            (_subtotal + _shippingFee) * discountValue / 100;
+                      } else {
+                        _discount = discountValue;
+                      }
                     });
                   },
                 ),
+
                 const SizedBox(height: 20),
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        _summaryRow('Tiền hàng', _subtotal),
+                        if (_isCalculatingShipping)
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 4),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('Phí ship'),
+                                SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: _wine,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        else ...[
+                          _summaryRow('Phí ship', _shippingFee),
+
+                          if (_shippingFee > 0)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 4),
+                              child: Text(
+                                'Phí ship được tính theo địa chỉ giao hàng đã chọn',
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                        ],
+                        _summaryRow('Giảm giá', -_discount),
+                        const Divider(),
+                        if (_isCalculatingShipping)
+                          const Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Tổng thanh toán',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              ),
+                            ],
+                          )
+                        else
+                          _summaryRow(
+                            'Tổng thanh toán',
+                            _subtotal + _shippingFee - _discount,
+                            isBold: true,
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
                 ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _wine,
@@ -381,11 +557,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           selected ? Icons.radio_button_checked : Icons.radio_button_off,
           color: selected ? _wine : null,
         ),
-        onTap: () {
+        onTap: () async {
           setState(() {
             _selectedAddressId = id;
             _showNewAddressForm = false;
           });
+
+          if (id != null) {
+            await _calculateShippingFee(id);
+          }
         },
         title: Text(address['receiverName']?.toString() ?? 'Nguoi nhan'),
         subtitle: Text(
@@ -458,10 +638,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               border: OutlineInputBorder(),
             ),
             items: _wards.map((ward) {
-              return DropdownMenuItem(
-                value: ward,
-                child: Text(ward['name']),
-              );
+              return DropdownMenuItem(value: ward, child: Text(ward['name']));
             }).toList(),
             onChanged: (value) {
               setState(() {
@@ -489,6 +666,33 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
+  Widget _summaryRow(String label, double amount, {bool isBold = false}) {
+    print('$label = $amount');
+    print(_subtotal);
+    print(_shippingFee);
+    print(_discount);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+          Text(
+            _money(amount),
+            style: TextStyle(
+              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _loadVouchers() async {
     try {
       final baseUrl = ApiConfig.getBaseUrl(context);
@@ -504,17 +708,48 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         setState(() {
           _vouchers = decodeListPayload(data)
               .where(
-                (v) =>
-            (v['status'] ?? '')
-                .toString()
-                .toUpperCase() ==
-                'ACTIVE',
-          )
+                (v) => (v['status'] ?? '').toString().toUpperCase() == 'ACTIVE',
+              )
               .toList();
         });
       }
     } catch (e) {
       debugPrint('Không thể tải danh sách voucher: $e');
     }
+  }
+
+  Future<void> _calculateShippingFee(String addressId) async {
+    setState(() {
+      _isCalculatingShipping = true;
+    });
+    try {
+      final baseUrl = ApiConfig.getBaseUrl(context);
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/shipments/calculate-client'),
+        headers: apiHeaders(json: true),
+        body: jsonEncode({'addressId': addressId}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+
+        setState(() {
+          _shippingFee = (data['total_shipping_fee'] as num?)?.toDouble() ?? 0;
+        });
+      }
+    } catch (e) {
+      debugPrint('Lỗi tính phí ship: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isCalculatingShipping = false;
+        });
+      }
+    }
+  }
+
+  String _money(double value) {
+    return NumberFormat.currency(locale: 'vi_VN', symbol: 'đ').format(value);
   }
 }

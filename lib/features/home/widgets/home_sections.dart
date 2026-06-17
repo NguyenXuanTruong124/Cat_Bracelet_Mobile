@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class HomeSections {
   static const Color wine = AppColors.wine;
@@ -58,21 +59,7 @@ class HomeSections {
             ),
           ),
           const SizedBox(height: 32),
-          ElevatedButton(
-            onPressed: () {},
-            style: ElevatedButton.styleFrom(
-              backgroundColor: wine,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30),
-              ),
-            ),
-            child: const Text(
-              'NHẬN PHONG ĐỘ NGAY',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-          ),
+
         ],
       ),
     );
@@ -81,59 +68,89 @@ class HomeSections {
   static Widget buildFeaturesSection() {
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        crossAxisAlignment: CrossAxisAlignment.start,
+      padding: EdgeInsets.symmetric(
+        vertical: 40.h,
+        horizontal: 16.w,
+      ),
+      child: Wrap(
+        alignment: WrapAlignment.center,
+        spacing: 16.w,
+        runSpacing: 20.h,
         children: [
-          _buildFeatureItem(
-            Icons.diamond_outlined,
-            'ĐÁ TỰ NHIÊN',
-            '100% tự nhiên',
+          SizedBox(
+            width: 130.w,
+            child: _buildFeatureItem(
+              Icons.diamond_outlined,
+              'ĐÁ TỰ NHIÊN',
+              '100% tự nhiên',
+            ),
           ),
-          _buildFeatureItem(
-            Icons.design_services_outlined,
-            'THIẾT KẾ',
-            'Độc bản',
+          SizedBox(
+            width: 130.w,
+            child: _buildFeatureItem(
+              Icons.design_services_outlined,
+              'THIẾT KẾ',
+              'Độc bản',
+            ),
           ),
-          _buildFeatureItem(
-            Icons.handshake_outlined,
-            'TƯƠNG THÍCH',
-            'Hợp cung mệnh',
+          SizedBox(
+            width: 130.w,
+            child: _buildFeatureItem(
+              Icons.handshake_outlined,
+              'TƯƠNG THÍCH',
+              'Hợp cung mệnh',
+            ),
           ),
-          _buildFeatureItem(Icons.wb_sunny_outlined, 'NĂNG LƯỢNG', 'Tích cực'),
+          SizedBox(
+            width: 130.w,
+            child: _buildFeatureItem(
+              Icons.wb_sunny_outlined,
+              'NĂNG LƯỢNG',
+              'Tích cực',
+            ),
+          ),
         ],
       ),
     );
   }
 
   static Widget _buildFeatureItem(
-    IconData icon,
-    String title,
-    String subtitle,
-  ) {
-    return Expanded(
-      child: Column(
-        children: [
-          Icon(icon, color: gold, size: 40),
-          const SizedBox(height: 12),
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 12,
-              color: wine,
-            ),
+      IconData icon,
+      String title,
+      String subtitle,
+      ) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          icon,
+          color: gold,
+          size: 40.sp,
+        ),
+
+        SizedBox(height: 12.h),
+
+        Text(
+          title,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 12.sp,
+            color: wine,
           ),
-          const SizedBox(height: 4),
-          Text(
-            subtitle,
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 11, color: taupe),
+        ),
+
+        SizedBox(height: 4.h),
+
+        Text(
+          subtitle,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 11.sp,
+            color: taupe,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -179,14 +196,26 @@ class HomeSections {
   static Widget buildAboutSection() {
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.all(24),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 1,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      padding: EdgeInsets.all(24.w),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isMobile = constraints.maxWidth < 700;
+
+          if (isMobile) {
+            return Column(
               children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(100.r),
+                  child: Image.asset(
+                    'assets/images/vongtay.png',
+                    height: 220.h,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) =>
+                        Container(color: softRose, height: 220.h),
+                  ),
+                ),
+                SizedBox(height: 24.h),
+
                 const Text(
                   'Cát là gì?',
                   style: TextStyle(
@@ -196,13 +225,25 @@ class HomeSections {
                     color: wine,
                   ),
                 ),
-                const SizedBox(height: 16),
+
+                SizedBox(height: 16.h),
+
                 const Text(
                   'Cát Bracelet là thương hiệu vòng tay phong thuỷ hiện đại kết hợp tính ứng dụng cao và ý nghĩa tinh thần sâu sắc.',
-                  style: TextStyle(fontSize: 15, color: taupe, height: 1.5),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: taupe,
+                    height: 1.5,
+                  ),
                 ),
-                const SizedBox(height: 16),
-                Row(
+
+                SizedBox(height: 20.h),
+
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: 18.w,
+                  runSpacing: 12.h,
                   children: [
                     _buildSmallIcon(Icons.spa, 'TỰ NHIÊN'),
                     _buildSmallIcon(Icons.favorite_border, 'CHÂN THẬT'),
@@ -210,37 +251,94 @@ class HomeSections {
                   ],
                 ),
               ],
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            flex: 1,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(100), // Circle-ish
-              child: Image.asset(
-                'assets/images/vongtay.png',
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) =>
-                    Container(color: softRose, height: 150),
+            );
+          }
+
+          return Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Cát là gì?',
+                      style: TextStyle(
+                        fontSize: 26.sp,
+                        fontFamily: 'serif',
+                        fontWeight: FontWeight.bold,
+                        color: wine,
+                      ),
+                    ),
+
+                    SizedBox(height: 16.h),
+
+                    Text(
+                      'Cát Bracelet là thương hiệu vòng tay phong thuỷ hiện đại kết hợp tính ứng dụng cao và ý nghĩa tinh thần sâu sắc.',
+                      style: TextStyle(
+                        fontSize: 15.sp,
+                        color: taupe,
+                        height: 1.5,
+                      ),
+                    ),
+
+                    SizedBox(height: 20.h),
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _buildSmallIcon(Icons.spa, 'TỰ NHIÊN'),
+                        _buildSmallIcon(Icons.favorite_border, 'CHÂN THẬT'),
+                        _buildSmallIcon(Icons.sync, 'CÂN BẰNG'),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ),
-        ],
+
+              SizedBox(width: 24.w),
+
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(100.r),
+                  child: Image.asset(
+                    'assets/images/vongtay.png',
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) =>
+                        Container(color: softRose, height: 200.h),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
 
-  static Widget _buildSmallIcon(IconData icon, String text) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 12),
+  static Widget _buildSmallIcon(
+      IconData icon,
+      String text,
+      ) {
+    return SizedBox(
+      width: 90.w,
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: gold, size: 24),
-          const SizedBox(height: 4),
+          Icon(
+            icon,
+            color: gold,
+            size: 24.sp,
+          ),
+
+          SizedBox(height: 4.h),
+
           Text(
             text,
-            style: const TextStyle(
-              fontSize: 10,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 10.sp,
               color: wine,
               fontWeight: FontWeight.bold,
             ),
@@ -521,29 +619,41 @@ class HomeSections {
 
   static Widget buildFooter() {
     return Container(
+      width: double.infinity,
       color: wine,
-      padding: const EdgeInsets.all(32),
-      child: const Column(
+      padding: EdgeInsets.all(32.w),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Cát Bracelet',
             style: TextStyle(
               fontFamily: 'serif',
-              fontSize: 28,
+              fontSize: 28.sp,
               color: gold,
               fontWeight: FontWeight.bold,
             ),
           ),
-          SizedBox(height: 8),
+
+          SizedBox(height: 8.h),
+
           Text(
             'Năng lượng tinh khiết\nPhong cách tinh tế',
-            style: TextStyle(color: Colors.white, height: 1.5),
+            style: TextStyle(
+              color: Colors.white,
+              height: 1.5,
+              fontSize: 14.sp,
+            ),
           ),
-          SizedBox(height: 24),
+
+          SizedBox(height: 24.h),
+
           Text(
             '© 2026 Cat Bracelet. All rights reserved.',
-            style: TextStyle(color: Colors.white54, fontSize: 12),
+            style: TextStyle(
+              color: Colors.white54,
+              fontSize: 12.sp,
+            ),
           ),
         ],
       ),
