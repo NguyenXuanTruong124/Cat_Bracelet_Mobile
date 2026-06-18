@@ -420,7 +420,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       return DropdownMenuItem<String>(
                         value: voucher['code']?.toString(),
                         child: Text(
-                          '${voucher['code']} - Giảm ${voucher['discountValue']}',
+                              () {
+                            final discountValue =
+                                double.tryParse(voucher['discountValue']?.toString() ?? '0') ?? 0;
+
+                            final discountType =
+                            voucher['discountType']?.toString().toUpperCase();
+
+                            if (discountType == 'PERCENT') {
+                              return '${voucher['code']} - Giảm ${formatNumber(discountValue)}%';
+                            }
+
+                            return '${voucher['code']} - Giảm ${_money(discountValue)}';
+                          }(),
                         ),
                       );
                     }),
@@ -751,5 +763,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   String _money(double value) {
     return NumberFormat.currency(locale: 'vi_VN', symbol: 'đ').format(value);
+  }
+
+  String formatNumber(double value) {
+    return value % 1 == 0
+        ? value.toInt().toString()
+        : value.toStringAsFixed(1);
   }
 }
