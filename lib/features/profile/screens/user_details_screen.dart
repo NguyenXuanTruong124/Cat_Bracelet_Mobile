@@ -28,8 +28,11 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
   @override
   void initState() {
     super.initState();
+
     _fill(UserSession.currentUser);
+
     _loadProfile();
+
   }
 
   void _fill(AppUser? user) {
@@ -166,4 +169,5 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
       ),
     );
   }
+
 }

@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-
+import '../../../core/utils/date_formatter.dart';
 import '../../../config/api_config.dart';
 import '../../profile/models/user_session.dart';
 import '../../../core/services/api_helpers.dart';
@@ -148,6 +148,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                         context,
                         '/order-tracking',
                         arguments: orderId,
+
                       ),
                       child: Container(
                         padding: const EdgeInsets.all(16),
@@ -177,14 +178,18 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Đơn #CB-$shortId',
+                                    'Đơn $shortId',
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    order['createdAt']?.toString() ?? '',
+                                    DateFormatter.ddMMyyyy(
+
+                                        order['createdAt']?.toString() ?? '',
+
+                                    ),
                                     style: const TextStyle(
                                       fontSize: 13,
                                       color: AppColors.onSurfaceVariant,

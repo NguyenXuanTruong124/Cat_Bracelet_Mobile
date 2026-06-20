@@ -56,7 +56,7 @@ class CartItemCard extends StatelessWidget {
                     '${variant?['color'] ?? ''} ${variant?['size'] ?? ''}'
                         .trim(),
                   ),
-                  Text(formatPrice(toInt(item['subTotal']))),
+                  Text(PriceFormatter.format(toInt(item['subTotal']))),
                   Row(
                     children: [
                       IconButton(

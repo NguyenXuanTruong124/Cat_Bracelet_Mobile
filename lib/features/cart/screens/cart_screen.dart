@@ -90,7 +90,7 @@ class _CartScreenState extends State<CartScreen> {
             children: [
               Expanded(
                 child: Text(
-                  'Tổng: ${formatPrice(toInt(_cart?['totalPrice']))}', // 👈 dùng formatPrice
+                  'Tổng: ${PriceFormatter.format(toInt(_cart?['totalPrice']))}', // 👈 dùng formatPrice
                   style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
                 ),
               ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
 import 'package:cat_bracelet_mobile/features/profile/models/user_session.dart';
+import '../../notification/services/notification_service.dart';
 import '../widgets/home_voucher_section.dart';
 import '../widgets/user_avatar_menu.dart';
 import '../widgets/home_search_bar.dart';
@@ -22,12 +23,33 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   static const Color _wine = AppColors.wine;
   static const Color _gold = AppColors.gold;
+  late NotificationService _notificationService;
 
+  int _unreadCount = 0;
   void _logout() {
     UserSession.clear();
     Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
   }
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
 
+    _notificationService =
+        NotificationService(context);
+
+    _loadUnreadCount();
+  }
+  Future<void> _loadUnreadCount() async {
+    final count =
+    await _notificationService
+        .getUnreadCount();
+
+    if (!mounted) return;
+
+    setState(() {
+      _unreadCount = count;
+    });
+  }
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -90,10 +112,26 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             centerTitle: true,
             actions: [
-              IconButton(
-                tooltip: 'Thông báo',
-                onPressed: () => Navigator.pushNamed(context, '/notifications'),
-                icon: const Icon(Icons.notifications_outlined, color: Colors.white),
+              Badge(
+                isLabelVisible: _unreadCount > 0,
+                label: Text(
+                  _unreadCount.toString(),
+                ),
+                child: IconButton(
+                  tooltip: 'Thông báo',
+                  onPressed: () async {
+                    await Navigator.pushNamed(
+                      context,
+                      '/notifications',
+                    );
+
+                    _loadUnreadCount();
+                  },
+                  icon: const Icon(
+                    Icons.notifications_outlined,
+                    color: Colors.white,
+                  ),
+                ),
               ),
               IconButton(
                 tooltip: 'Tìm kiếm',

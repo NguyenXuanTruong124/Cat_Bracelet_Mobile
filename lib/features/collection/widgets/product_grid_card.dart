@@ -115,7 +115,7 @@ class _ProductInfo extends StatelessWidget {
           ),
           SizedBox(height: 4.h),
           Text(
-            formatPrice(product.basePrice),
+            PriceFormatter.format(product.basePrice),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
