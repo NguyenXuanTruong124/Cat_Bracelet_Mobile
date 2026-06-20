@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import '../../../core/theme/app_colors.dart';
 import '../../../core/services/api_helpers.dart';
 import 'package:cat_bracelet_mobile/core/utils/price_formatter.dart';
 
