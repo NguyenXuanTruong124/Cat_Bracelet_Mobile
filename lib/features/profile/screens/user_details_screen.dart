@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 
 import 'package:image_picker/image_picker.dart';
 import 'package:http_parser/http_parser.dart';
-import '../../../core/config/api_config.dart';
+import '../../../config/api_config.dart';
 import '../models/user_session.dart';
 import '../../../core/services/api_helpers.dart';
 import '../../../core/theme/app_colors.dart';

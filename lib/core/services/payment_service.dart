@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-import '../../../core/config/api_config.dart';
+import '../../config/api_config.dart';
 import '../../../core/services/api_helpers.dart';
 import 'package:cat_bracelet_mobile/features/payment/model/payment.dart';
 import 'package:cat_bracelet_mobile/features/payment/model/payment_status.dart';

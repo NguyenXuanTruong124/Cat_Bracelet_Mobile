@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:webview_flutter/webview_flutter.dart';
 
-import '../../../core/config/api_config.dart';
+import '../../../config/api_config.dart';
 import '../../../core/services/api_helpers.dart';
 
 class PayOsWebViewScreen extends StatefulWidget {

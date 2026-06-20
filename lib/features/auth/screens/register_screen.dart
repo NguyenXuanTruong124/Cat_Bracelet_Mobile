@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../../../core/config/api_config.dart';
+import '../../../config/api_config.dart';
 import '../../../core/theme/app_colors.dart';
 
 class RegisterScreen extends StatefulWidget {

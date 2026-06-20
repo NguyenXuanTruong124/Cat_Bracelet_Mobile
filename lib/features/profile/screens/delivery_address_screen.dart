@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-import '../../../core/config/api_config.dart';
+import '../../../config/api_config.dart';
 import '../models/user_session.dart';
 import '../../../core/services/api_helpers.dart';
 import '../../../core/theme/app_colors.dart';

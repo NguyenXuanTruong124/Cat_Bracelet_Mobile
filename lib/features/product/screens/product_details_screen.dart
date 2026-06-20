@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
-import '../../../core/config/api_config.dart';
+import '../../../config/api_config.dart';
 import '../../../core/theme/app_colors.dart';
 import '../models/product.dart';
 import '../models/product_variants.dart';
