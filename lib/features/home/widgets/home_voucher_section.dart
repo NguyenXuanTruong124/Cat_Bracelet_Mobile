@@ -1,12 +1,11 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 
-import '../../../config/api_config.dart';
-import '../../../core/services/api_helpers.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../voucher/screens/voucher_screen.dart';
+
+import '../../voucher/models/voucher_model.dart';
+import '../../voucher/services/voucher_service.dart';
+import '../../voucher/widgets/voucher_card.dart';
+import '../../voucher/screens/voucher_detail_screen.dart';
 
 class HomeVoucherSection extends StatefulWidget {
   const HomeVoucherSection({super.key});
@@ -19,7 +18,10 @@ class HomeVoucherSection extends StatefulWidget {
 class _HomeVoucherSectionState extends State<HomeVoucherSection> {
   static const Color _wine = AppColors.wine;
 
-  List<Map<String, dynamic>> _vouchers = [];
+  final VoucherService _voucherService =
+  VoucherService();
+
+  List<VoucherModel> _vouchers = [];
 
   @override
   void initState() {
@@ -29,26 +31,19 @@ class _HomeVoucherSectionState extends State<HomeVoucherSection> {
 
   Future<void> _fetchVouchers() async {
     try {
-      final baseUrl = ApiConfig.getBaseUrl(context);
-      final response = await http.get(Uri.parse('$baseUrl/vouchers'));
-      if (response.statusCode != 200) {
-        return;
-      }
+      final vouchers =
+      await _voucherService.getVouchers(context);
 
-      final vouchers = decodeListPayload(jsonDecode(response.body))
-          .whereType<Map<String, dynamic>>()
-          .where(
-            (voucher) =>
-        (voucher['status'] ?? '').toString().toLowerCase() == 'active',
-      )
-          .take(2)
-          .toList();
+      if (!mounted) return;
 
-      if (!mounted) {
-        return;
-      }
-      setState(() => _vouchers = vouchers);
-    } catch (_) {}
+      setState(() {
+        _vouchers = vouchers.take(2).toList();
+      });
+    } catch (e) {
+      debugPrint(
+        'Lỗi tải voucher: $e',
+      );
+    }
   }
 
   @override
@@ -90,7 +85,19 @@ class _HomeVoucherSectionState extends State<HomeVoucherSection> {
               ..._vouchers.map(
                     (voucher) => Padding(
                   padding: const EdgeInsets.only(bottom: 12),
-                  child: VoucherCard(voucher: voucher),
+                  child: VoucherCard(
+                    voucher: voucher,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => VoucherDetailScreen(
+                            voucher: voucher,
+                          ),
+                        ),
+                      );
+                    },
+                  )
                 ),
               ),
             ],

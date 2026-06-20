@@ -1,12 +1,7 @@
 import 'dart:async';
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:webview_flutter/webview_flutter.dart';
-
-import '../../../config/api_config.dart';
-import '../../../core/services/api_helpers.dart';
+import '../services/payment_service.dart';
 
 class PayOsWebViewScreen extends StatefulWidget {
   final String checkoutUrl;
@@ -23,10 +18,14 @@ class PayOsWebViewScreen extends StatefulWidget {
       _PayOsWebViewScreenState();
 }
 
+
 class _PayOsWebViewScreenState
     extends State<PayOsWebViewScreen> {
   late final WebViewController _controller;
   Timer? _paymentTimer;
+  final PaymentService _paymentService =
+  PaymentService();
+
 
   @override
   void initState() {
@@ -52,43 +51,37 @@ class _PayOsWebViewScreenState
 
   Future<void> _checkPaymentStatus() async {
     try {
-      final baseUrl = ApiConfig.getBaseUrl(context);
-
-      final response = await http.get(
-        Uri.parse(
-          '$baseUrl/api/payment/status/${widget.orderCode}',
-        ),
-        headers: apiHeaders(),
+      final paymentStatus =
+      await _paymentService.getStatus(
+        context,
+        widget.orderCode,
       );
-
-      if (response.statusCode != 200) return;
-
-      final data = jsonDecode(response.body);
-
       debugPrint(
-        'PAYMENT STATUS: ${data['paymentStatus']}',
+        'PAYMENT STATUS = ${paymentStatus.paymentStatus}',
+      );
+      if (!paymentStatus.isPaid) {
+        return;
+      }
+
+      _paymentTimer?.cancel();
+
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Thanh toán thành công',
+          ),
+        ),
       );
 
-      if (data['paymentStatus']
-          ?.toString()
-          .toUpperCase() ==
-          'PAID') {
-        _paymentTimer?.cancel();
-
-        if (!mounted) return;
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Thanh toán thành công'),
-          ),
-        );
-
-        Navigator.pushNamedAndRemoveUntil(
-          context,
-          '/home',
-              (route) => false,
-        );
-      }
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        '/home',
+            (route) => false,
+      );
     } catch (e) {
       debugPrint(
         'CHECK PAYMENT ERROR: $e',

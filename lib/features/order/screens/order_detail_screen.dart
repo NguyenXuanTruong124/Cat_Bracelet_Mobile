@@ -9,7 +9,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/services/api_helpers.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../core/services/payment_service.dart';
+import '../../payment/services/payment_service.dart';
 
 class OrderDetailScreen extends StatefulWidget {
   final String orderId;

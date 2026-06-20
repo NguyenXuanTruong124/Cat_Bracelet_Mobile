@@ -6,7 +6,7 @@ import '../../../config/api_config.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../profile/models/user_session.dart';
 import '../../../core/services/api_helpers.dart';
-import 'package:cat_bracelet_mobile/features/payment/screen/payOS_webview_screen.dart';
+import 'package:cat_bracelet_mobile/features/payment/screens/payOS_webview_screen.dart';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
