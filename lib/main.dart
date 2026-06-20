@@ -3,7 +3,7 @@ import 'features/home/screens/home_screen.dart';
 import 'features/auth/screens/login_screen.dart';
 import 'features/auth/screens/register_screen.dart';
 import 'features/auth/screens/otp_screen.dart';
-import 'features/product/screens/collection_screen.dart';
+import 'features/collection/screens/collection_screen.dart';
 import 'features/cart/screens/cart_screen.dart';
 import 'features/order/screens/checkout_screen.dart';
 import 'features/order/screens/order_history_screen.dart';

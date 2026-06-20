@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 import '../../../config/api_config.dart';
 import 'package:cat_bracelet_mobile/features/product/models/product.dart';
 import '../../../core/services/api_helpers.dart';
-import '../../../features/product/screens/collection_screen.dart';
+import 'package:cat_bracelet_mobile/features/collection/screens/collection_screen.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});

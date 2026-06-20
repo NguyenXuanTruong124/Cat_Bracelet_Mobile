@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
-import '../../../models/user_session.dart';
+import 'package:cat_bracelet_mobile/features/profile/models/user_session.dart';
 import '../widgets/home_voucher_section.dart';
 import '../widgets/user_avatar_menu.dart';
 import '../widgets/home_search_bar.dart';
