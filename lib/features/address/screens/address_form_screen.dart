@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import '../../../core/widgets/app_notification.dart';
 import '/config/api_config.dart';
 import '/features/profile/models/user_session.dart';
 import '../../../core/services/api_helpers.dart';
@@ -144,8 +145,9 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
     v == null || v
         .toString()
         .isEmpty)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui lòng điền đầy đủ thông tin')),
+      AppNotification.showError(
+        context: context,
+        message: 'Vui lòng điền đầy đủ thông tin',
       );
       return;
     }
@@ -184,9 +186,10 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
       if (response.statusCode == 200 || response.statusCode == 201) {
         Navigator.pop(context, true);
       } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Lỗi: ${response.statusCode}')));
+        AppNotification.showError(
+          context: context,
+          message: 'Lỗi: ${response.statusCode}'
+        );
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);

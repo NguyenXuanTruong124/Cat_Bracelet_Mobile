@@ -7,6 +7,7 @@ import 'package:cat_bracelet_mobile/config/api_config.dart';
 import 'package:cat_bracelet_mobile/features/profile/models/user_session.dart';
 import '../../../core/services/api_helpers.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/app_notification.dart';
 import '../widgets/address_cart.dart';
 import '../screens/address_form_screen.dart';
 
@@ -66,8 +67,9 @@ class _DeliveryAddressScreenState extends State<DeliveryAddressScreen> {
     if (response.statusCode == 200) {
       await _fetchAddresses();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Đã đặt làm địa chỉ mặc định')),
+        AppNotification.showSuccess(
+          context: context,
+          message: 'Đã đặt làm địa chỉ mặc định',
         );
       }
     }
@@ -106,8 +108,9 @@ class _DeliveryAddressScreenState extends State<DeliveryAddressScreen> {
     if (response.statusCode == 200) {
       await _fetchAddresses();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Đã xóa địa chỉ')),
+        AppNotification.showSuccess(
+          context: context,
+          message: 'Đã xóa địa chỉ',
         );
       }
     }

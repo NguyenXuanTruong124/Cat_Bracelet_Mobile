@@ -1,6 +1,4 @@
 import 'dart:convert';
-
-import 'package:cat_bracelet_mobile/features/product/models/product_variant_mapping.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -10,6 +8,7 @@ import '../../../core/theme/app_colors.dart';
 import '../models/product.dart';
 import '../models/product_variants.dart';
 import '../../../core/services/api_helpers.dart';
+import '../../../core/widgets/app_notification.dart';
 
 class ProductDetailsScreen extends StatefulWidget {
   final Product product;
@@ -151,9 +150,10 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
 
   Future<void> _addToCart() async {
     if (_selectedVariant == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Vui lòng chọn biến thể')));
+      AppNotification.showError(
+        context: context,
+        message: 'Vui lòng chọn biến thể',
+      );
       return;
     }
 
@@ -172,16 +172,18 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
       if (response.statusCode == 200 || response.statusCode == 201) {
         _showAddedToCart();
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Không thể thêm vào giỏ: ${response.statusCode}')),
+        AppNotification.showError(
+          context: context,
+          message: 'Không thể thêm vào giỏ: ${response.statusCode}',
         );
       }
     } catch (_) {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Không thể thêm vào giỏ hàng')),
+      AppNotification.showError(
+        context: context,
+        message: 'Không thể thêm vào giỏ hàng',
       );
     }
   }

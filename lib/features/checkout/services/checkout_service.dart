@@ -74,9 +74,24 @@ class CheckoutService {
         .toList();
   }
 
-  Future<double> calculateShippingFee(
-      String addressId,
-      ) async {
+  Future<double> calculateShippingFee([
+    String? addressId,
+  ]) async {
+    if (addressId == null) {
+      final addresses = await fetchAddresses();
+
+      if (addresses.isEmpty) {
+        return 0;
+      }
+
+      final defaultAddress = addresses.firstWhere(
+            (e) => e.isDefault,
+        orElse: () => addresses.first,
+      );
+
+      addressId = defaultAddress.id;
+    }
+
     final baseUrl = ApiConfig.getBaseUrl(context);
 
     final response = await http.post(

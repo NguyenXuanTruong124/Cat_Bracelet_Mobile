@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import '../../../config/api_config.dart';
 import '../../../core/theme/app_colors.dart';
+import '../services/auth_service.dart';
+import '../../../core/widgets/app_notification.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -32,10 +31,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final phone = _phoneController.text.trim();
 
     if (email.isEmpty || fullName.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Vui lòng nhập đủ các thông tin bắt buộc'),
-        ),
+      AppNotification.showError(
+        context: context,
+        message: 'Vui lòng nhập đủ các thông tin bắt buộc',
       );
       return;
     }
@@ -45,49 +43,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
     });
 
     try {
-      final baseUrl = ApiConfig.getBaseUrl(context);
-      final url = Uri.parse('$baseUrl/user/register');
-
-      final Map<String, dynamic> body = {
-        'email': email,
-        'fullName': fullName,
-        'password': password,
-      };
-
-      if (phone.isNotEmpty) {
-        body['phone'] = phone;
-      }
-
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(body),
+      final response = await AuthService(context).register(
+        email: email,
+        fullName: fullName,
+        password: password,
+        phone: phone.isNotEmpty ? phone : null,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Đăng ký thành công, vui lòng kiểm tra email để lấy mã OTP',
-            ),
-          ),
+        AppNotification.showSuccess(
+          context: context,
+          message: 'Đăng ký thành công, vui lòng kiểm tra email để lấy mã OTP',
         );
         Navigator.pushReplacementNamed(context, '/otp', arguments: email);
       } else {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Lỗi ${response.statusCode}: ${response.body}'),
-            duration: const Duration(seconds: 5),
-          ),
+        AppNotification.showError(
+          context: context,
+          message: 'Lỗi ${response.statusCode}: ${response.body}',
         );
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Lỗi kết nối tới Server: $e')));
+      AppNotification.showError(
+        context: context,
+        message: 'Lỗi kết nối tới Server: $e',
+      );
     } finally {
       if (mounted) {
         setState(() {

@@ -44,6 +44,8 @@ class _CheckoutScreenState
   List<String> _cartItemIds = [];
 
   Map<String, dynamic>? _cart;
+  bool _initialized = false;
+  bool _isCheckingOut = false;
 
   String? _selectedAddressId;
   String? _selectedVoucherCode;
@@ -68,20 +70,57 @@ class _CheckoutScreenState
   void initState() {
     super.initState();
     _service = CheckoutService(context);
+  }
 
-    WidgetsBinding.instance
-        .addPostFrameCallback((_) {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    if (_initialized) return;
+
+    final args =
+        ModalRoute.of(context)
+            ?.settings
+            .arguments;
+
+    if (args is Map<String, dynamic>) {
+      _cart = args;
+
+      _subtotal =
+          (_cart!['totalPrice']
+          as num?)
+              ?.toDouble() ??
+              0;
+
+      _cartItemIds =
+          (_cart!['items'] as List)
+              .map<String>(
+                (e) =>
+                (e['cartItemId'] ??
+                    e['id'])
+                    .toString(),
+          )
+              .toList();
+
       _initializeData();
-    });
+    }
+
+    _initialized = true;
   }
 
   Future<void> _initializeData() async {
     try {
+
+      final results = await Future.wait([
+        _service.fetchAddresses(),
+        _service.fetchVouchers(),
+      ]);
+
       final addresses =
-      await _service.fetchAddresses();
+      results[0] as List<AddressModel>;
 
       final vouchers =
-      await _service.fetchVouchers();
+      results[1] as List<VoucherModel>;
 
       setState(() {
         _addresses = addresses;
@@ -101,7 +140,7 @@ class _CheckoutScreenState
       });
 
       if (_selectedAddressId != null) {
-         _calculateShippingFee(
+        await _calculateShippingFee(
           _selectedAddressId!,
         );
       }
@@ -119,10 +158,6 @@ class _CheckoutScreenState
       ) async {
     setState(() {
       _calculatingShipping = true;
-
-      // reset giá cũ để tránh nhảy số
-      _shippingFee = 0;
-      _discount = 0;
     });
 
     try {
@@ -164,50 +199,64 @@ class _CheckoutScreenState
       return;
     }
 
-    final result =
-    await _service.checkout(
-      userId: user.id,
-      addressId: _selectedAddressId!,
-      voucherCode:
-      _selectedVoucherCode,
-      cartItemIds: _cartItemIds,
-    );
+    setState(() {
+      _isCheckingOut = true;
+    });
 
-    if (result == null ||
-        !mounted) {
-      return;
-    }
-
-    final payment =
-    result['payment']
-    as Map<String, dynamic>?;
-
-    final checkoutUrl =
-    payment?['checkoutUrl']
-        ?.toString();
-
-    if (checkoutUrl != null &&
-        checkoutUrl.isNotEmpty) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) =>
-              PayOsWebViewScreen(
-                checkoutUrl: checkoutUrl,
-                orderCode:
-                payment?['orderCode'] ??
-                    0,
-              ),
-        ),
+    try {
+      final result =
+      await _service.checkout(
+        userId: user.id,
+        addressId: _selectedAddressId!,
+        voucherCode:
+        _selectedVoucherCode,
+        cartItemIds: _cartItemIds,
       );
 
-      return;
-    }
+      if (result == null ||
+          !mounted) {
+        return;
+      }
 
-    Navigator.pushReplacementNamed(
-      context,
-      '/orders',
-    );
+      final payment =
+      result['payment']
+      as Map<String, dynamic>?;
+
+      final checkoutUrl =
+      payment?['checkoutUrl']
+          ?.toString();
+
+      if (checkoutUrl != null &&
+          checkoutUrl.isNotEmpty) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) =>
+                PayOsWebViewScreen(
+                  checkoutUrl:
+                  checkoutUrl,
+                  orderCode:
+                  payment?[
+                  'orderCode'] ??
+                      0,
+                ),
+          ),
+        );
+
+        return;
+      }
+
+      Navigator.pushReplacementNamed(
+        context,
+        '/orders',
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isCheckingOut = false;
+        });
+      }
+    }
   }
 
   void _onVoucherChanged(
@@ -244,32 +293,12 @@ class _CheckoutScreenState
   @override
   Widget build(BuildContext context) {
     if (_cart == null) {
-      final args =
-          ModalRoute.of(context)
-              ?.settings
-              .arguments;
-
-      if (args is Map<String, dynamic>) {
-        _cart = args;
-
-        _subtotal =
-            (_cart!['totalPrice']
-            as num?)
-                ?.toDouble() ??
-                0;
-
-        _cartItemIds =
-            (_cart!['items'] as List)
-                .map<String>(
-                  (e) =>
-                  (e['cartItemId'] ??
-                      e['id'])
-                      .toString(),
-            )
-                .toList();
-      }
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
     }
-
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -334,9 +363,6 @@ class _CheckoutScreenState
                     setState(() {
                       _selectedAddressId =
                           address.id;
-
-                      _shippingFee = 0;
-                      _discount = 0;
                     });
 
                     await _calculateShippingFee(

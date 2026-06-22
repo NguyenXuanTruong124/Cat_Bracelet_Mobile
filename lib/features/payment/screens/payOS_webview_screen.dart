@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import '../../../core/widgets/app_notification.dart';
 import '../services/payment_service.dart';
 
 class PayOsWebViewScreen extends StatefulWidget {
@@ -14,30 +15,21 @@ class PayOsWebViewScreen extends StatefulWidget {
   });
 
   @override
-  State<PayOsWebViewScreen> createState() =>
-      _PayOsWebViewScreenState();
+  State<PayOsWebViewScreen> createState() => _PayOsWebViewScreenState();
 }
 
-
-class _PayOsWebViewScreenState
-    extends State<PayOsWebViewScreen> {
+class _PayOsWebViewScreenState extends State<PayOsWebViewScreen> {
   late final WebViewController _controller;
   Timer? _paymentTimer;
-  final PaymentService _paymentService =
-  PaymentService();
-
+  final PaymentService _paymentService = PaymentService();
 
   @override
   void initState() {
     super.initState();
 
     _controller = WebViewController()
-      ..setJavaScriptMode(
-        JavaScriptMode.unrestricted,
-      )
-      ..loadRequest(
-        Uri.parse(widget.checkoutUrl),
-      );
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..loadRequest(Uri.parse(widget.checkoutUrl));
 
     _startCheckingPayment();
   }
@@ -45,20 +37,17 @@ class _PayOsWebViewScreenState
   void _startCheckingPayment() {
     _paymentTimer = Timer.periodic(
       const Duration(seconds: 3),
-          (_) => _checkPaymentStatus(),
+      (_) => _checkPaymentStatus(),
     );
   }
 
   Future<void> _checkPaymentStatus() async {
     try {
-      final paymentStatus =
-      await _paymentService.getStatus(
+      final paymentStatus = await _paymentService.getStatus(
         context,
         widget.orderCode,
       );
-      debugPrint(
-        'PAYMENT STATUS = ${paymentStatus.paymentStatus}',
-      );
+      debugPrint('PAYMENT STATUS = ${paymentStatus.paymentStatus}');
       if (!paymentStatus.isPaid) {
         return;
       }
@@ -69,23 +58,14 @@ class _PayOsWebViewScreenState
         return;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Thanh toán thành công',
-          ),
-        ),
+      AppNotification.showSuccess(
+        context: context,
+        message: 'Thanh toán thành công',
       );
 
-      Navigator.pushNamedAndRemoveUntil(
-        context,
-        '/home',
-            (route) => false,
-      );
+      Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
     } catch (e) {
-      debugPrint(
-        'CHECK PAYMENT ERROR: $e',
-      );
+      debugPrint('CHECK PAYMENT ERROR: $e');
     }
   }
 
@@ -98,12 +78,8 @@ class _PayOsWebViewScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Thanh toán PayOS'),
-      ),
-      body: WebViewWidget(
-        controller: _controller,
-      ),
+      appBar: AppBar(title: const Text('Thanh toán PayOS')),
+      body: WebViewWidget(controller: _controller),
     );
   }
 }

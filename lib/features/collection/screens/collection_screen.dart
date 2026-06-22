@@ -151,9 +151,6 @@ class _CollectionScreenState extends State<CollectionScreen> {
   }
 
   void _goToCart() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Đi về giỏ hàng')),
-    );
     Navigator.pushNamed(context, '/cart');
   }
 

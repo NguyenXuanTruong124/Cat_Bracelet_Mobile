@@ -42,16 +42,17 @@ class _NotificationScreenState
     });
   }
 
-  Future<void>
-  _loadNotifications() async {
+  Future<void> _loadNotifications() async {
     try {
       final notifications =
-      await _service
-          .getNotifications();
+      await _service.getNotifications();
+
+      notifications.sort(
+            (a, b) => b.createdAt.compareTo(a.createdAt),
+      );
 
       setState(() {
-        _notifications =
-            notifications;
+        _notifications = notifications;
       });
     } finally {
       setState(() {

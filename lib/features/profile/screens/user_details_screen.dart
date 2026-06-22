@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../core/widgets/app_notification.dart';
 import '../models/app_user.dart';
 import '../models/user_session.dart';
 import '../services/user_service.dart';
@@ -61,8 +62,10 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
     );
     if (user != null) {
       UserSession.currentUser = user;
-      _showSnackBar('Đã cập nhật thông tin');
-    }
+      AppNotification.showSuccess(
+        context: context,
+        message: 'Đã cập nhật thông tin',
+      );    }
     if (mounted) setState(() => _isLoading = false);
   }
 
@@ -75,14 +78,13 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
     final success = await UserService.uploadAvatar(context, image);
     if (success) {
       await _loadProfile();
-      _showSnackBar('Đã upload avatar');
-    }
+      AppNotification.showSuccess(
+        context: context,
+        message: 'Đã tải ảnh đại diện lên thành công',
+      );    }
     if (mounted) setState(() => _isLoading = false);
   }
 
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
-  }
 
   @override
   Widget build(BuildContext context) {

@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../../core/services/api_helpers.dart';
 import '../../../core/theme/app_colors.dart';
 
+import '../../../core/widgets/app_notification.dart';
 import '../models/order_detail_model.dart';
 import '../services/order_service.dart';
 
@@ -15,20 +16,14 @@ import '../widgets/shipping_address_card.dart';
 class OrderDetailScreen extends StatefulWidget {
   final String orderId;
 
-  const OrderDetailScreen({
-    super.key,
-    required this.orderId,
-  });
+  const OrderDetailScreen({super.key, required this.orderId});
 
   @override
-  State<OrderDetailScreen> createState() =>
-      _OrderDetailScreenState();
+  State<OrderDetailScreen> createState() => _OrderDetailScreenState();
 }
 
-class _OrderDetailScreenState
-    extends State<OrderDetailScreen> {
-  final OrderService _orderService =
-  OrderService();
+class _OrderDetailScreenState extends State<OrderDetailScreen> {
+  final OrderService _orderService = OrderService();
 
   OrderDetailModel? _order;
 
@@ -43,11 +38,7 @@ class _OrderDetailScreenState
 
   Future<void> _loadOrder() async {
     try {
-      final order =
-      await _orderService.getOrderDetail(
-        context,
-        widget.orderId,
-      );
+      final order = await _orderService.getOrderDetail(context, widget.orderId);
 
       if (!mounted) return;
 
@@ -59,13 +50,9 @@ class _OrderDetailScreenState
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context)
-          .showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Không thể tải thông tin đơn hàng',
-          ),
-        ),
+      AppNotification.showError(
+        context: context,
+        message: 'Không thể tải thông tin đơn hàng',
       );
     } finally {
       if (mounted) {
@@ -89,9 +76,7 @@ class _OrderDetailScreenState
       return const Scaffold(
         backgroundColor: AppColors.background,
         body: Center(
-          child: CircularProgressIndicator(
-            color: AppColors.primary,
-          ),
+          child: CircularProgressIndicator(color: AppColors.primary),
         ),
       );
     }
@@ -102,18 +87,11 @@ class _OrderDetailScreenState
       return Scaffold(
         backgroundColor: AppColors.background,
         appBar: AppBar(
-          title: const Text(
-            'CHI TIẾT ĐƠN HÀNG',
-          ),
-          backgroundColor:
-          AppColors.primary,
+          title: const Text('CHI TIẾT ĐƠN HÀNG'),
+          backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
         ),
-        body: const Center(
-          child: Text(
-            'Không tải được đơn hàng',
-          ),
-        ),
+        body: const Center(child: Text('Không tải được đơn hàng')),
       );
     }
 
@@ -141,10 +119,8 @@ class _OrderDetailScreenState
           children: [
             OrderHeaderCard(
               orderId: order.id,
-              paymentStatus:
-              order.paymentStatus,
-              totalPrice:
-              _price(order.totalAmount),
+              paymentStatus: order.paymentStatus,
+              totalPrice: _price(order.totalAmount),
             ),
 
             if (order.canRetryPayment) ...[
@@ -156,17 +132,7 @@ class _OrderDetailScreenState
                 onSuccess: () {},
 
                 onError: (message) {
-                  if (!mounted) return;
-
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        message,
-                      ),
-                    ),
-                  );
+                  AppNotification.showError(context: context, message: message);
                 },
               ),
             ],
@@ -176,48 +142,32 @@ class _OrderDetailScreenState
 
               const Text(
                 'ĐỊA CHỈ NHẬN HÀNG',
-                style: TextStyle(
-                  fontWeight:
-                  FontWeight.bold,
-                  fontSize: 14,
-                ),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
               ),
 
               const SizedBox(height: 8),
 
-              ShippingAddressCard(
-                address: order.address!,
-              ),
+              ShippingAddressCard(address: order.address!),
             ],
 
             const SizedBox(height: 20),
 
             const Text(
               'SẢN PHẨM',
-              style: TextStyle(
-                fontWeight:
-                FontWeight.bold,
-                fontSize: 14,
-              ),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
             ),
 
             const SizedBox(height: 8),
 
             ...order.items.map(
-                  (item) => Padding(
-                padding:
-                const EdgeInsets.only(
-                  bottom: 8,
-                ),
+              (item) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
                 child: OrderProductCard(
-                  productName:
-                  item.productName,
+                  productName: item.productName,
                   color: item.color,
                   size: item.size,
                   quantity: item.quantity,
-                  totalPrice: _price(
-                    item.totalPrice,
-                  ),
+                  totalPrice: _price(item.totalPrice),
                 ),
               ),
             ),
