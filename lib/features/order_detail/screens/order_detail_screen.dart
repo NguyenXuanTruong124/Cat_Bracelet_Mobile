@@ -136,6 +136,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 order.createdAt.toString(),
               ),
             ),
+            
             const SizedBox(height: 16),
 
             if (order.canRetryPayment) ...[
