@@ -28,16 +28,14 @@ class _CartIconBadgeState extends State<CartIconBadge> {
   }
 
   Future<void> _loadCartCount() async {
-    try {
-      final cart = await _cartService.fetchCart();
+    final cart = await _cartService.fetchCart();
 
-      if (!mounted || cart == null) return;
+    if (!mounted || cart == null) return;
 
-      setState(() {
-        _cartItemCount =
-            (cart['totalItems'] as num?)?.toInt() ?? 0;
-      });
-    } catch (_) {}
+    setState(() {
+      _cartItemCount =
+          (cart['items'] as List?)?.length ?? 0;
+    });
   }
 
   @override

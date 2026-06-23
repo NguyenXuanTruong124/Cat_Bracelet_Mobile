@@ -131,6 +131,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             OrderHeaderCard(
               orderId: order.id,
               paymentStatus: order.paymentStatus,
+              orderStatus: order.status,
               totalPrice: _price(order.totalAmount),
               createdDate: DateFormatter.ddMMyyyy(
                 order.createdAt.toString(),

@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
-import '../utils/order_status_helper.dart';
+import '../utils/status_helper.dart';
 
 class OrderHeaderCard extends StatelessWidget {
   final String orderId;
   final String totalPrice;
+  final String orderStatus;
   final String? paymentStatus;
   final String? createdDate;
   const OrderHeaderCard({
     super.key,
     required this.orderId,
     required this.totalPrice,
+    required this.orderStatus,
     required this.paymentStatus,
     this.createdDate,
   });
@@ -25,8 +27,8 @@ class OrderHeaderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final statusColor =
-    OrderStatusHelper.paymentStatusColor(
-      paymentStatus,
+    StatusHelper.orderStatusColor(
+      orderStatus,
     );
 
     return Container(
@@ -89,12 +91,11 @@ class OrderHeaderCard extends StatelessWidget {
               color: statusColor.withValues(
                 alpha: 0.12,
               ),
-              borderRadius:
-              BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
-              OrderStatusHelper.paymentStatusLabel(
-                paymentStatus,
+              StatusHelper.orderStatusLabel(
+                orderStatus,
               ),
               style: TextStyle(
                 fontWeight: FontWeight.w600,
@@ -103,7 +104,21 @@ class OrderHeaderCard extends StatelessWidget {
             ),
           ),
 
+          const SizedBox(height: 8),
+
+          Text(
+            'Thanh toán: ${StatusHelper.paymentStatusLabel(paymentStatus)}',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: StatusHelper.paymentStatusColor(
+                paymentStatus,
+              ),
+            ),
+          ),
+
           const SizedBox(height: 12),
+
 
           Text(
             'Tổng thanh toán: $totalPrice',
