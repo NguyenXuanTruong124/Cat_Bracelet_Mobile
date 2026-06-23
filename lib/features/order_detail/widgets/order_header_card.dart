@@ -7,12 +7,13 @@ class OrderHeaderCard extends StatelessWidget {
   final String orderId;
   final String totalPrice;
   final String? paymentStatus;
-
+  final String? createdDate;
   const OrderHeaderCard({
     super.key,
     required this.orderId,
     required this.totalPrice,
     required this.paymentStatus,
+    this.createdDate,
   });
 
   String get shortOrderId {
@@ -68,6 +69,16 @@ class OrderHeaderCard extends StatelessWidget {
           ),
 
           const SizedBox(height: 12),
+          if (createdDate != null) ...[
+            Text(
+              'Ngày đặt: $createdDate',
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey.shade600,
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
 
           Container(
             padding: const EdgeInsets.symmetric(

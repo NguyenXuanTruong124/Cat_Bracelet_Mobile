@@ -22,92 +22,173 @@ class VoucherDetailScreen extends StatelessWidget {
         title: const Text('Chi tiết voucher'),
         backgroundColor: _wine,
         foregroundColor: Colors.white,
+        elevation: 0,
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
-        child: Card(
-          elevation: 3,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment:
-              CrossAxisAlignment.start,
-              children: [
-                Text(
-                  voucher.code,
-                  style: const TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    color: _wine,
+        child: Column(
+          children: [
+            // Header Voucher
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: _wine,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: _wine.withOpacity(0.25),
+                    blurRadius: 12,
+                    offset: const Offset(0, 6),
                   ),
-                ),
-
-                const SizedBox(height: 20),
-
-                _buildInfoRow(
-                  'Loại giảm giá',
-                  voucher.discountType,
-                ),
-
-                _buildInfoRow(
-                  'Giá trị',
-                    voucher.discountType == 'PERCENT'
-                        ? '${NumberFormatter.clean(voucher.discountValue)}%'
-                        : '${NumberFormatter.clean(voucher.discountValue)}đ'
-                ),
-
-                _buildInfoRow(
-                  'Số lượng còn lại',
-                  voucher.quantity.toString(),
-                ),
-
-                _buildInfoRow(
-                  'Ngày bắt đầu',
-                  DateFormatter.ddMMyyyy(
-                    voucher.startDate,
+                ],
+              ),
+              child: Column(
+                children: [
+                  const Icon(
+                    Icons.local_offer_rounded,
+                    color: Colors.white,
+                    size: 50,
                   ),
-                ),
-                _buildInfoRow(
-                  'Ngày kết thúc',
-                  DateFormatter.ddMMyyyy(
-                    voucher.endDate,
+                  const SizedBox(height: 12),
+                  Text(
+                    voucher.code,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.2,
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    child: Text(
+                      voucher.discountType == 'PERCENT'
+                          ? 'Giảm ${NumberFormatter.clean(voucher.discountValue)}%'
+                          : 'Giảm ${NumberFormatter.clean(voucher.discountValue)}đ',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
+
+            const SizedBox(height: 20),
+
+            Card(
+              elevation: 3,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    _buildInfoTile(
+                      Icons.discount_outlined,
+                      'Loại giảm giá',
+                      voucher.discountType,
+                    ),
+                    _buildDivider(),
+
+                    _buildInfoTile(
+                      Icons.payments_outlined,
+                      'Giá trị',
+                      voucher.discountType == 'PERCENT'
+                          ? '${NumberFormatter.clean(voucher.discountValue)}%'
+                          : '${NumberFormatter.clean(voucher.discountValue)}đ',
+                    ),
+                    _buildDivider(),
+
+                    _buildInfoTile(
+                      Icons.inventory_2_outlined,
+                      'Số lượng còn lại',
+                      voucher.quantity.toString(),
+                    ),
+                    _buildDivider(),
+
+                    _buildInfoTile(
+                      Icons.calendar_today_outlined,
+                      'Ngày bắt đầu',
+                      DateFormatter.ddMMyyyy(
+                        voucher.startDate,
+                      ),
+                    ),
+                    _buildDivider(),
+
+                    _buildInfoTile(
+                      Icons.event_available_outlined,
+                      'Ngày kết thúc',
+                      DateFormatter.ddMMyyyy(
+                        voucher.endDate,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildInfoRow(
+  Widget _buildDivider() {
+    return const Padding(
+      padding: EdgeInsets.symmetric(vertical: 12),
+      child: Divider(height: 1),
+    );
+  }
+
+  Widget _buildInfoTile(
+      IconData icon,
       String title,
       String value,
       ) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
-      child: Row(
-        crossAxisAlignment:
-        CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 120,
-            child: Text(
-              title,
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-              ),
+    return Row(
+      children: [
+        CircleAvatar(
+          radius: 18,
+          backgroundColor: const Color(0xFFF8E8E8),
+          child: Icon(
+            icon,
+            color: _wine,
+            size: 18,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            title,
+            style: const TextStyle(
+              color: Colors.grey,
+              fontSize: 14,
             ),
           ),
-          Expanded(
-            child: Text(value),
+        ),
+        Flexible(
+          child: Text(
+            value,
+            textAlign: TextAlign.end,
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 15,
+            ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

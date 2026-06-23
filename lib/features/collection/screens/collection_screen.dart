@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../config/api_config.dart';
 import '../../../core/services/api_helpers.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../cart/widgets/cart_icon_badge.dart';
 import '../../home/screens/home_screen.dart';
 import '../models/filter_options.dart';
 import 'package:cat_bracelet_mobile/features/product/models/product.dart';
@@ -150,9 +151,6 @@ class _CollectionScreenState extends State<CollectionScreen> {
     );
   }
 
-  void _goToCart() {
-    Navigator.pushNamed(context, '/cart');
-  }
 
   void _openFilterSheet() {
     showCollectionFilterSheet(
@@ -229,11 +227,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
             tooltip: 'Lọc sản phẩm',
             onPressed: _openFilterSheet,
           ),
-        IconButton(
-          icon: const Icon(Icons.shopping_cart),
-          tooltip: 'Giỏ hàng',
-          onPressed: _goToCart,
-        ),
+        const CartIconBadge(),
       ],
     );
   }

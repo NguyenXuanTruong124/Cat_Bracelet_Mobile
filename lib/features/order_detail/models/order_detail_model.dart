@@ -3,9 +3,23 @@ import 'shipping_address_model.dart';
 
 class OrderDetailModel {
   final String id;
+
+  final String status;
   final String paymentStatus;
+
   final double totalAmount;
+  final double shippingFee;
+
   final bool canRetryPayment;
+
+  final DateTime createdAt;
+  final DateTime? paidAt;
+
+  final String? paymentOrderCode;
+
+  final String? voucherCode;
+  final double voucherValue;
+  final String? voucherType;
 
   final ShippingAddressModel? address;
 
@@ -13,11 +27,19 @@ class OrderDetailModel {
 
   const OrderDetailModel({
     required this.id,
+    required this.status,
     required this.paymentStatus,
     required this.totalAmount,
+    required this.shippingFee,
     required this.canRetryPayment,
+    required this.createdAt,
+    this.paidAt,
+    this.paymentOrderCode,
     required this.address,
     required this.items,
+    this.voucherCode,
+    required this.voucherValue,
+    this.voucherType,
   });
 
   factory OrderDetailModel.fromJson(
@@ -29,6 +51,8 @@ class OrderDetailModel {
     return OrderDetailModel(
       id: json['id']?.toString() ?? '',
 
+      status: json['status'] ?? '',
+
       paymentStatus:
       json['paymentStatus'] ?? '',
 
@@ -36,8 +60,28 @@ class OrderDetailModel {
       (json['totalAmount'] ?? 0)
           .toDouble(),
 
+      shippingFee:
+      (json['shippingFee'] ?? 0)
+          .toDouble(),
+
       canRetryPayment:
       json['canRetryPayment'] == true,
+
+      createdAt:
+      DateTime.tryParse(
+        json['createdAt'] ?? '',
+      ) ??
+          DateTime.now(),
+
+      paidAt: json['paidAt'] != null
+          ? DateTime.tryParse(
+        json['paidAt'],
+      )
+          : null,
+
+      paymentOrderCode:
+      json['paymentOrderCode']
+          ?.toString(),
 
       address: json['address'] != null
           ? ShippingAddressModel.fromJson(
@@ -52,6 +96,20 @@ class OrderDetailModel {
         ),
       )
           .toList(),
+
+      voucherCode:
+      json['voucher']?['code']?.toString(),
+
+      voucherValue: double.tryParse(
+        json['voucher']?['discountValue']
+            ?.toString() ??
+            '0',
+      ) ??
+          0,
+
+      voucherType:
+      json['voucher']?['discountType']
+          ?.toString(),
     );
   }
 }

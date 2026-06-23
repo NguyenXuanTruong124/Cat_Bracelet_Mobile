@@ -23,33 +23,33 @@ class FeaturesSection extends StatelessWidget{
           SizedBox(
             width: 130.w,
             child: _buildFeatureItem(
-              Icons.diamond_outlined,
-              'ĐÁ TỰ NHIÊN',
-              '100% tự nhiên',
+              'assets/images/thanhtay.png',
+              'Thanh tẩy',
+              'Làm sạch năng lượng xấu, loại bỏ tạp khí.',
             ),
           ),
           SizedBox(
             width: 130.w,
             child: _buildFeatureItem(
-              Icons.design_services_outlined,
-              'THIẾT KẾ',
-              'Độc bản',
+              'assets/images/kichhoat.png',
+              'KÍCH HOẠT',
+              'Nạp năng lượng tích cực phù hợp với bạn.',
             ),
           ),
           SizedBox(
             width: 130.w,
             child: _buildFeatureItem(
-              Icons.handshake_outlined,
-              'TƯƠNG THÍCH',
-              'Hợp cung mệnh',
+              'assets/images/canbang.png',
+              'CÂN BẰNG',
+              'Hỗ trợ cân bằng cảm xúc, tinh thần & cơ thể.',
             ),
           ),
           SizedBox(
             width: 130.w,
             child: _buildFeatureItem(
-              Icons.wb_sunny_outlined,
-              'NĂNG LƯỢNG',
-              'Tích cực',
+              'assets/images/donghanh.png',
+              'ĐỒNG HÀNH',
+              'Thu hút may mắn, bảo vệ và nâng cao năng lượng.',
             ),
           ),
         ],
@@ -58,42 +58,40 @@ class FeaturesSection extends StatelessWidget{
   }
 
   static Widget _buildFeatureItem(
-      IconData icon,
+      String image,
       String title,
       String subtitle,
       ) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(
-          icon,
-          color: gold,
-          size: 40.sp,
-        ),
-
-        SizedBox(height: 12.h),
-
-        Text(
-          title,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 12.sp,
-            color: wine,
+    return Container(
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18.r),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
           ),
-        ),
-
-        SizedBox(height: 4.h),
-
-        Text(
-          subtitle,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 11.sp,
-            color: taupe,
+        ],
+      ),
+      child: Column(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12.r),
+            child: Image.asset(
+              image,
+              width: 70.w,
+              height: 70.w,
+              fit: BoxFit.cover,
+            ),
           ),
-        ),
-      ],
+
+          SizedBox(height: 12.h),
+
+          Text(title),
+          Text(subtitle),
+        ],
+      ),
     );
   }
 

@@ -3,15 +3,17 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import 'package:cat_bracelet_mobile/features/profile/models/user_session.dart';
 import '../../notification/services/notification_service.dart';
+
 import '../widgets/home_voucher_section.dart';
 import '../widgets/user_avatar_menu.dart';
 import '../widgets/home_search_bar.dart';
-import '../widgets/member_card.dart';
 import '../widgets/hero_section.dart';
 import '../widgets/features_section.dart';
 import '../widgets/about_section.dart';
 import '../widgets/testimonials_section.dart';
 import '../widgets/footer_section.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:cat_bracelet_mobile/features/cart/widgets/cart_icon_badge.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -23,26 +25,31 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   static const Color _wine = AppColors.wine;
   static const Color _gold = AppColors.gold;
+
   late NotificationService _notificationService;
 
   int _unreadCount = 0;
+
   void _logout() {
     UserSession.clear();
-    Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+    Navigator.pushNamedAndRemoveUntil(
+      context,
+      '/',
+          (route) => false,
+    );
   }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    _notificationService =
-        NotificationService(context);
+    _notificationService = NotificationService(context);
 
     _loadUnreadCount();
   }
+
   Future<void> _loadUnreadCount() async {
-    final count =
-    await _notificationService
-        .getUnreadCount();
+    final count = await _notificationService.getUnreadCount();
 
     if (!mounted) return;
 
@@ -50,195 +57,299 @@ class _HomeScreenState extends State<HomeScreen> {
       _unreadCount = count;
     });
   }
+
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final isMobile = size.width < 600;
+
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF9F6F2),
       bottomNavigationBar: NavigationBar(
         selectedIndex: 0,
+        backgroundColor: Colors.white,
+        indicatorColor: _wine.withValues(alpha: 0.12),
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         onDestinationSelected: (index) {
           if (index == 1) {
             Navigator.pushNamed(context, '/collection');
           } else if (index == 2) {
-            Navigator.pushNamed(context, '/cart');
-          } else if (index == 3) {
             Navigator.pushNamed(context, '/vouchers');
-          } else if (index == 4) {
+          } else if (index == 3) {
             Navigator.pushNamed(context, '/profile');
           }
         },
         destinations: const [
-          NavigationDestination(icon: Icon(Icons.home), label: 'Trang chủ'),
+          NavigationDestination(
+            icon: Icon(Icons.home_outlined),
+            selectedIcon: Icon(Icons.home),
+            label: 'Trang chủ',
+          ),
           NavigationDestination(
             icon: Icon(Icons.shopping_bag_outlined),
+            selectedIcon: Icon(Icons.shopping_bag),
             label: 'Sản phẩm',
           ),
           NavigationDestination(
-            icon: Icon(Icons.shopping_cart_outlined),
-            label: 'Giỏ hàng',
-          ),
-          NavigationDestination(
             icon: Icon(Icons.local_activity_outlined),
+            selectedIcon: Icon(Icons.local_activity),
             label: 'Voucher',
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outline),
+            selectedIcon: Icon(Icons.person),
             label: 'Tài khoản',
           ),
         ],
       ),
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            backgroundColor: _wine,
-            expandedHeight: isMobile ? 70 : 85,
-            floating: true,
-            pinned: true,
-            leading: Padding(
-              padding: const EdgeInsets.only(left: 12),
-              child: UserAvatarMenu(onLogout: _logout),
-            ),
-            title: Text(
-              'Cat Bracelet',
-              style: TextStyle(
-                fontFamily: 'serif',
-                fontWeight: FontWeight.bold,
-                color: _gold,
-                fontSize: isMobile ? 20 : 24,
-              ),
-            ),
-            centerTitle: true,
-            actions: [
-              Badge(
-                isLabelVisible: _unreadCount > 0,
-                label: Text(
-                  _unreadCount.toString(),
+      body: SafeArea(
+        child: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              toolbarHeight: 60.h,
+              expandedHeight: 60.h,
+              floating: true,
+              pinned: true,
+              elevation: 0,
+              backgroundColor: _wine,
+              flexibleSpace: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      _wine,
+                      _wine.withValues(alpha: 0.92),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
                 ),
-                child: IconButton(
-                  tooltip: 'Thông báo',
-                  onPressed: () async {
-                    await Navigator.pushNamed(
-                      context,
-                      '/notifications',
-                    );
+              ),
+              leading: Padding(
+                padding: EdgeInsets.only(left: 12.w),                child: UserAvatarMenu(
+                  onLogout: _logout,
+                ),
+              ),
+              centerTitle: true,
+              title: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  'Cat Bracelet',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontFamily: 'serif',
+                    fontWeight: FontWeight.bold,
+                    color: _gold,
+                    fontSize: 24.sp,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+              actions: [
+                Badge(
+                  isLabelVisible: _unreadCount > 0,
+                  label: Text(
+                    _unreadCount.toString(),
+                  ),
+                  child: IconButton(
+                    tooltip: 'Thông báo',
+                    onPressed: () async {
+                      await Navigator.pushNamed(
+                        context,
+                        '/notifications',
+                      );
 
-                    _loadUnreadCount();
-                  },
+                      _loadUnreadCount();
+                    },
+                    icon: const Icon(
+                      Icons.notifications_outlined,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'Tìm kiếm',
+                  onPressed: () =>
+                      Navigator.pushNamed(context, '/search'),
                   icon: const Icon(
-                    Icons.notifications_outlined,
+                    Icons.search,
                     color: Colors.white,
                   ),
                 ),
-              ),
-              IconButton(
-                tooltip: 'Tìm kiếm',
-                onPressed: () => Navigator.pushNamed(context, '/search'),
-                icon: const Icon(Icons.search, color: Colors.white),
-              ),
-              IconButton(
-                tooltip: 'Giỏ hàng',
-                onPressed: () => Navigator.pushNamed(context, '/cart'),
-                icon: const Icon(Icons.shopping_cart_outlined, color: Colors.white),
-              ),
-              const SizedBox(width: 8),
-            ],
-          ),
-
-          const SliverToBoxAdapter(child: HomeSearchBar()),
-
-          const SliverToBoxAdapter(child: MemberCard()),
-
-          SliverToBoxAdapter(
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 1200),
-                child: const HeroSection(),
-              ),
+                const CartIconBadge(),
+                SizedBox(width: 8.w),
+              ],
             ),
-          ),
 
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                vertical: isMobile ? 20 : 30,
-                horizontal: isMobile ? 16 : 32,
-              ),
-              child: Column(
-                children: [
-                  Text(
-                    'Bộ sưu tập nổi bật',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: isMobile ? 22 : 28,
-                      fontFamily: 'serif',
-                      fontWeight: FontWeight.bold,
-                      color: _wine,
+            SliverToBoxAdapter(
+              child: SizedBox(height: 4.h),
+            ),
+
+            const SliverToBoxAdapter(
+              child: HomeSearchBar(),
+            ),
+
+             SliverToBoxAdapter(
+              child: SizedBox(height: 12.h)
+            ),
+
+            const SliverToBoxAdapter(
+              child: SizedBox(height: 24),
+            ),
+
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: 16.w,
+                ),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints:
+                    const BoxConstraints(maxWidth: 1200),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius:
+                        BorderRadius.circular(24.r),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.06),
+                            blurRadius: 20,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: const HeroSection(),
                     ),
                   ),
-                  SizedBox(height: isMobile ? 12 : 20),
-                  SizedBox(
-                    width: isMobile ? double.infinity : 260,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _wine,
-                        foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(
-                          horizontal: isMobile ? 20 : 24,
-                          vertical: isMobile ? 14 : 16,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+                ),
+              ),
+            ),
+
+            const SliverToBoxAdapter(
+              child: SizedBox(height: 36),
+            ),
+
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: 20.w,
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      'Bộ sưu tập nổi bật',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 28.sp,
+                        fontFamily: 'serif',
+                        fontWeight: FontWeight.bold,
+                        color: _wine,
                       ),
-                      onPressed: () => Navigator.pushNamed(context, '/collection'),
-                      child: Text(
-                        'Xem bộ sưu tập',
-                        style: TextStyle(
-                          fontSize: isMobile ? 14 : 16,
-                          fontWeight: FontWeight.bold,
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      'Những mẫu vòng tay dành riêng cho người yêu mèo',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.grey.shade700,
+                          fontSize: 14.sp,
+                      ),
+                    ),
+                    SizedBox(height: 24.h),
+                    SizedBox(
+                      width: 280.w,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.pushNamed(
+                            context,
+                            '/collection',
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _wine,
+                          foregroundColor: Colors.white,
+                          elevation: 4,
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 16,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius:
+                            BorderRadius.circular(14.r),
+                          ),
+                        ),
+                        child: Text(
+                          'Khám phá bộ sưu tập',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                              fontSize: 15.sp
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
 
-          SliverToBoxAdapter(
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 1200),
-                child: const FeaturesSection(),
+            const SliverToBoxAdapter(
+              child: SizedBox(height: 40),
+            ),
+
+            SliverToBoxAdapter(
+              child: Center(
+                child: ConstrainedBox(
+                  constraints:
+                  const BoxConstraints(maxWidth: 1200),
+                  child: const FeaturesSection(),
+                ),
               ),
             ),
-          ),
 
-          SliverToBoxAdapter(
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 1200),
-                child: const AboutSection(),
+            const SliverToBoxAdapter(
+              child: SizedBox(height: 24),
+            ),
+
+            SliverToBoxAdapter(
+              child: Center(
+                child: ConstrainedBox(
+                  constraints:
+                  const BoxConstraints(maxWidth: 1200),
+                  child: const AboutSection(),
+                ),
               ),
             ),
-          ),
 
-          SliverToBoxAdapter(
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 1200),
-                child: const TestimonialsSection(),
+            const SliverToBoxAdapter(
+              child: SizedBox(height: 24),
+            ),
+
+            SliverToBoxAdapter(
+              child: Center(
+                child: ConstrainedBox(
+                  constraints:
+                  const BoxConstraints(maxWidth: 1200),
+                  child: const TestimonialsSection(),
+                ),
               ),
             ),
-          ),
 
-          const SliverToBoxAdapter(child: HomeVoucherSection()),
+            const SliverToBoxAdapter(
+              child: SizedBox(height: 24),
+            ),
 
-          const SliverToBoxAdapter(child: FooterSection()),
-        ],
+            const SliverToBoxAdapter(
+              child: HomeVoucherSection(),
+            ),
+
+            const SliverToBoxAdapter(
+              child: SizedBox(height: 24),
+            ),
+
+            const SliverToBoxAdapter(
+              child: FooterSection(),
+            ),
+          ],
+        ),
       ),
     );
   }

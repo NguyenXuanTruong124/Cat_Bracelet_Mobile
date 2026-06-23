@@ -12,6 +12,8 @@ import '../widgets/order_header_card.dart';
 import '../widgets/order_product_card.dart';
 import '../widgets/retry_payment_button.dart';
 import '../widgets/shipping_address_card.dart';
+import '../../../core/utils/date_formatter.dart';
+import '../widgets/order_summary_card.dart';
 
 class OrderDetailScreen extends StatefulWidget {
   final String orderId;
@@ -32,7 +34,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   @override
   void initState() {
     super.initState();
-    print('ORDER ID = ${widget.orderId}');
     _loadOrder();
   }
 
@@ -94,6 +95,16 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         body: const Center(child: Text('Không tải được đơn hàng')),
       );
     }
+    final subtotal = order.totalAmount;
+    final shipping = order.shippingFee;
+
+    final voucherDiscountAmount = order.voucherCode == null
+        ? 0.0
+        : order.voucherType == 'PERCENT'
+        ? (subtotal + shipping) * (order.voucherValue / 100)
+        : order.voucherValue;
+
+    final finalTotal = subtotal + shipping - voucherDiscountAmount;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -121,7 +132,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               orderId: order.id,
               paymentStatus: order.paymentStatus,
               totalPrice: _price(order.totalAmount),
+              createdDate: DateFormatter.ddMMyyyy(
+                order.createdAt.toString(),
+              ),
             ),
+            const SizedBox(height: 16),
 
             if (order.canRetryPayment) ...[
               const SizedBox(height: 16),
@@ -148,6 +163,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               const SizedBox(height: 8),
 
               ShippingAddressCard(address: order.address!),
+              const SizedBox(height: 16),
             ],
 
             const SizedBox(height: 20),
@@ -164,12 +180,30 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 padding: const EdgeInsets.only(bottom: 8),
                 child: OrderProductCard(
                   productName: item.productName,
+                  sku: item.sku,
+                  thumbnail: item.thumbnail ?? '',
                   color: item.color,
                   size: item.size,
                   quantity: item.quantity,
+                  unitPrice: _price(item.unitPrice),
                   totalPrice: _price(item.totalPrice),
                 ),
               ),
+            ),
+            const SizedBox(height: 16),
+
+            OrderSummaryCard(
+              subtotal: _price(subtotal),
+
+              shippingFee: _price(shipping),
+
+              total: _price(finalTotal),
+
+              voucherCode: order.voucherCode,
+
+              voucherDiscount: order.voucherCode == null
+                  ? null
+                  : '-${_price(voucherDiscountAmount)}',
             ),
           ],
         ),

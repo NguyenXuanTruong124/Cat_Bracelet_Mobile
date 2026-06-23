@@ -58,9 +58,9 @@ class _CheckoutScreenState
   double _shippingFee = 0;
   double _discount = 0;
 
-  List<dynamic> _provinces = [];
-  List<dynamic> _districts = [];
-  List<dynamic> _wards = [];
+  final List<dynamic> _provinces = [];
+  final List<dynamic> _districts = [];
+  final List<dynamic> _wards = [];
 
   dynamic _selectedProvince;
   dynamic _selectedDistrict;

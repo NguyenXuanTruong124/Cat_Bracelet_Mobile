@@ -4,17 +4,23 @@ import '../../../core/theme/app_colors.dart';
 
 class OrderProductCard extends StatelessWidget {
   final String productName;
+  final String sku;
   final String color;
   final String size;
+  final String thumbnail;
+  final String unitPrice;
   final int quantity;
   final String totalPrice;
 
   const OrderProductCard({
     super.key,
     required this.productName,
+    required this.sku,
     required this.color,
     required this.size,
+    required this.thumbnail,
     required this.quantity,
+    required this.unitPrice,
     required this.totalPrice,
   });
 

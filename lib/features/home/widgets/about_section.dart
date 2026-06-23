@@ -22,9 +22,9 @@ class AboutSection extends StatelessWidget{
             return Column(
               children: [
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(100.r),
+                  borderRadius: BorderRadius.circular(24.r),
                   child: Image.asset(
-                    'assets/images/vongtay.png',
+                    'assets/images/about4.png',
                     height: 220.h,
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) =>

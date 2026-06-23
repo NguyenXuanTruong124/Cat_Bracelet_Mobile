@@ -12,12 +12,12 @@ class HomeSearchBar extends StatelessWidget {
     final isMobile = size.width < 600;
 
     return Container(
-      color: _wine,
+      color: Colors.transparent,
       padding: EdgeInsets.fromLTRB(
         isMobile ? 16 : 32,
-        8,
+        0,
         isMobile ? 16 : 32,
-        18,
+        12,
       ),
       child: Center(
         child: ConstrainedBox(
