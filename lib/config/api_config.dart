@@ -11,4 +11,12 @@ class ApiConfig {
     } catch (_) {}
     return baseUrl;
   }
+
+  static String getPayOsReturnUrl(BuildContext context) {
+    return dotenv.env['PAYOS_RETURN_URL'] ?? getBaseUrl(context);
+  }
+
+  static String getPayOsCancelUrl(BuildContext context) {
+    return dotenv.env['PAYOS_CANCEL_URL'] ?? getBaseUrl(context);
+  }
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
+import '../../payment/screens/payOS_webview_screen.dart';
 import '../../payment/services/payment_service.dart';
 
 class RetryPaymentButton extends StatelessWidget {
@@ -24,12 +24,27 @@ class RetryPaymentButton extends StatelessWidget {
         label: const Text('THANH TOÁN LẠI'),
         onPressed: () async {
           try {
-            final payment = await PaymentService()
-                .retryPayment(context, orderId);
+            final payment = await PaymentService().retryPayment(
+              context,
+              orderId,
+            );
 
-            await launchUrl(
-              Uri.parse(payment.checkoutUrl),
-              mode: LaunchMode.externalApplication,
+            if (payment.checkoutUrl.isEmpty) {
+              throw Exception('Không có link thanh toán');
+            }
+
+            if (!context.mounted) {
+              return;
+            }
+
+            await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => PayOsWebViewScreen(
+                  checkoutUrl: payment.checkoutUrl,
+                  orderCode: payment.orderCode,
+                ),
+              ),
             );
 
             onSuccess();
