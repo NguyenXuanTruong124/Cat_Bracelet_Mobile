@@ -15,6 +15,7 @@ import '../../features/voucher/screens/voucher_screen.dart';
 import '../../features/auth/screens/forgot_password_screen.dart';
 import '../../features/notification/screen/notification_screen.dart';
 import '../../features/order_detail/screens/order_detail_screen.dart';
+import '../../features/payment/screens/payment_screen.dart';
 
 class AppRoutes {
   static Map<String, WidgetBuilder> routes = {
@@ -32,11 +33,13 @@ class AppRoutes {
     '/forgot-password': (context) => const ForgotPasswordScreen(),
     '/notifications': (context) => const NotificationScreen(),
     '/addresses': (context) => const DeliveryAddressScreen(),
-    '/address-form': (context) => const AddressFormScreen()
+    '/address-form': (context) => const AddressFormScreen(),
+    '/payment-success': (context) => const PaymentScreen(),
   };
 
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
-    if (settings.name == '/order-tracking') {
+    if (settings.name == '/order-tracking' ||
+        settings.name == '/order-detail') {
       final orderId = settings.arguments as String? ?? '';
       return MaterialPageRoute(
         builder: (context) => OrderDetailScreen(orderId: orderId),
@@ -45,5 +48,3 @@ class AppRoutes {
     return null;
   }
 }
-
-

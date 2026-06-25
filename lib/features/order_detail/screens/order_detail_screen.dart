@@ -133,11 +133,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               paymentStatus: order.paymentStatus,
               orderStatus: order.status,
               totalPrice: _price(order.totalAmount),
-              createdDate: DateFormatter.ddMMyyyy(
-                order.createdAt.toString(),
-              ),
+              createdDate: DateFormatter.ddMMyyyy(order.createdAt.toString()),
             ),
-            
+
             const SizedBox(height: 16),
 
             if (order.canRetryPayment) ...[
@@ -145,6 +143,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
               RetryPaymentButton(
                 orderId: order.id,
+                fallbackOrderCode: int.tryParse(order.paymentOrderCode ?? ''),
 
                 onSuccess: () {},
 

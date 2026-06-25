@@ -29,6 +29,87 @@ List<dynamic> decodeListPayload(dynamic decoded) {
   return [];
 }
 
+Map<String, dynamic>? asStringMap(dynamic value) {
+  if (value is Map<String, dynamic>) {
+    return value;
+  }
+  if (value is Map) {
+    return value.map((key, value) => MapEntry(key.toString(), value));
+  }
+  return null;
+}
+
+String? readStringField(Map<String, dynamic>? data, List<String> keys) {
+  if (data == null) {
+    return null;
+  }
+  for (final key in keys) {
+    final value = data[key];
+    if (value != null && value.toString().trim().isNotEmpty) {
+      return value.toString();
+    }
+  }
+  return null;
+}
+
+String? readThumbnailPath(Map<String, dynamic>? data) {
+  final direct = readStringField(data, const [
+    'thumbnail',
+    'thumbnailUrl',
+    'thumbnail_url',
+    'image',
+    'imageUrl',
+    'image_url',
+    'productImage',
+    'product_image',
+    'cover',
+    'coverImage',
+    'cover_image',
+  ]);
+  if (direct != null) {
+    return direct;
+  }
+
+  final images = data?['productImages'] ?? data?['product_images'];
+  if (images is List) {
+    for (final image in images) {
+      final imageMap = asStringMap(image);
+      final status = imageMap?['status']?.toString().toUpperCase();
+      final url = readStringField(imageMap, const [
+        'imageUrl',
+        'image_url',
+        'url',
+      ]);
+      if (url != null && (status == null || status == 'ACTIVE')) {
+        return url;
+      }
+    }
+  }
+
+  return null;
+}
+
+Map<String, dynamic>? readProductPayload(Map<String, dynamic> item) {
+  final directProduct = asStringMap(item['product']);
+  if (directProduct != null) {
+    return directProduct;
+  }
+
+  final variant = asStringMap(item['variantDetails'] ?? item['variant']);
+  final variantProduct = asStringMap(variant?['product']);
+  if (variantProduct != null) {
+    return variantProduct;
+  }
+
+  final mappings =
+      variant?['productVariantMappings'] ?? item['productVariantMappings'];
+  if (mappings is List && mappings.isNotEmpty) {
+    return asStringMap(asStringMap(mappings.first)?['product']);
+  }
+
+  return null;
+}
+
 double toDouble(dynamic value) {
   if (value is num) {
     return value.toDouble();

@@ -126,7 +126,16 @@ class CheckoutService {
     );
 
     if (response.statusCode != 200 && response.statusCode != 201) {
-      return null;
+      String message = 'Không thể tạo đơn hàng';
+      try {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map<String, dynamic>) {
+          message = (decoded['message'] ?? decoded['error'] ?? message)
+              .toString();
+        }
+      } catch (_) {}
+
+      throw Exception('$message (${response.statusCode})');
     }
 
     final data = jsonDecode(response.body);
@@ -150,13 +159,20 @@ class CheckoutService {
         'addressId': addressId,
         'voucherCode': voucherCode,
         'cartItemIds': cartItemIds,
-        'returnUrl': ApiConfig.getPayOsReturnUrl(context),
-        'cancelUrl': ApiConfig.getPayOsCancelUrl(context),
       }),
     );
 
     if (response.statusCode != 200 && response.statusCode != 201) {
-      return null;
+      String message = 'Không thể tạo đơn hàng';
+      try {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map<String, dynamic>) {
+          message = (decoded['message'] ?? decoded['error'] ?? message)
+              .toString();
+        }
+      } catch (_) {}
+
+      throw Exception('$message (${response.statusCode})');
     }
 
     return jsonDecode(response.body) as Map<String, dynamic>;

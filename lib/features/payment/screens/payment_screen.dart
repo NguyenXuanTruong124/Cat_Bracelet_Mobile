@@ -13,10 +13,13 @@ class PaymentScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final rawOrder = ModalRoute.of(context)?.settings.arguments;
     final order = rawOrder is Map<String, dynamic> ? rawOrder : null;
+    final totalAmount = toDouble(order?['totalAmount']);
     final total = NumberFormat.currency(
       locale: 'vi_VN',
-      symbol: 'd',
-    ).format(toDouble(order?['totalAmount']));
+      symbol: 'đ',
+    ).format(totalAmount);
+    final paymentCode =
+        order?['paymentOrderCode'] ?? order?['orderCode'] ?? order?['id'];
 
     return Scaffold(
       appBar: AppBar(
@@ -32,16 +35,15 @@ class PaymentScreen extends StatelessWidget {
             const Icon(Icons.check_circle, color: Colors.green, size: 72),
             const SizedBox(height: 16),
             Text(
-              'Đơn hàng đã được tạo',
+              'Thanh toán thành công',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             const SizedBox(height: 8),
-            Text(
-              'Mã đơn: ${order?['id'] ?? 'N/A'}',
-              textAlign: TextAlign.center,
-            ),
-            Text('Tổng thanh toán: $total', textAlign: TextAlign.center),
+            if (paymentCode != null)
+              Text('Mã thanh toán: $paymentCode', textAlign: TextAlign.center),
+            if (totalAmount > 0)
+              Text('Tổng thanh toán: $total', textAlign: TextAlign.center),
             const SizedBox(height: 24),
             OutlinedButton.icon(
               onPressed: () =>

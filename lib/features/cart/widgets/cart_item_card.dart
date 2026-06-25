@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../core/services/api_helpers.dart';
 import 'package:cat_bracelet_mobile/core/utils/price_formatter.dart';
 
@@ -18,11 +19,11 @@ class CartItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final product = item['product'] as Map<String, dynamic>?;
-    final variant = item['variantDetails'] as Map<String, dynamic>?;
+    final product = readProductPayload(item);
+    final variant = asStringMap(item['variantDetails'] ?? item['variant']);
     final quantity = toInt(item['quantity']);
     final id = (item['cartItemId'] ?? item['id']).toString();
-    final imageUrl = buildImageUrl(baseUrl, product?['thumbnail']?.toString());
+    final imageUrl = buildImageUrl(baseUrl, readThumbnailPath(product));
 
     return Card(
       child: Padding(
@@ -40,7 +41,16 @@ class CartItemCard extends StatelessWidget {
                         color: Color(0xFFFFF8F7),
                         child: Icon(Icons.image_not_supported),
                       )
-                    : Image.network(imageUrl, fit: BoxFit.cover),
+                    : Image.network(
+                        imageUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) {
+                          return const ColoredBox(
+                            color: Color(0xFFFFF8F7),
+                            child: Icon(Icons.image_not_supported),
+                          );
+                        },
+                      ),
               ),
             ),
             const SizedBox(width: 12),
@@ -49,7 +59,10 @@ class CartItemCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    (product?['productName'] ?? 'Sản phẩm').toString(),
+                    (product?['productName'] ??
+                            product?['product_name'] ??
+                            'Sản phẩm')
+                        .toString(),
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   Text(

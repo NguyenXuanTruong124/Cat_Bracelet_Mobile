@@ -29,6 +29,7 @@ class _PayOsWebViewScreenState extends State<PayOsWebViewScreen> {
 
   late final WebViewController _controller;
   Timer? _paymentTimer;
+  Timer? _urlWatchTimer;
   bool _handlingCompletionRedirect = false;
   bool _checkingPaymentStatus = false;
   bool _waitingForPaymentConfirmation = false;
@@ -60,6 +61,12 @@ class _PayOsWebViewScreenState extends State<PayOsWebViewScreen> {
               _handlePaymentCompletionRedirect();
             }
           },
+          onUrlChange: (change) {
+            final url = change.url;
+            if (url != null && _isPaymentCompletionUrl(url)) {
+              _handlePaymentCompletionRedirect();
+            }
+          },
           onWebResourceError: (error) {
             final url = error.url;
             debugPrint(
@@ -75,12 +82,16 @@ class _PayOsWebViewScreenState extends State<PayOsWebViewScreen> {
       ..loadRequest(Uri.parse(widget.checkoutUrl));
 
     _startCheckingPayment();
+    _startWatchingUrl();
   }
 
   bool _isPaymentCompletionUrl(String url) {
     final uri = Uri.tryParse(url);
+    final baseUri = Uri.tryParse(ApiConfig.getBaseUrl(context));
 
-    return (uri != null && _legacyPaymentReturnHosts.contains(uri.host)) ||
+    return (uri != null &&
+            (_legacyPaymentReturnHosts.contains(uri.host) ||
+                uri.host == baseUri?.host)) ||
         _matchesConfiguredUrl(url, ApiConfig.getPayOsReturnUrl(context)) ||
         _matchesConfiguredUrl(url, ApiConfig.getPayOsCancelUrl(context));
   }
@@ -108,7 +119,7 @@ class _PayOsWebViewScreenState extends State<PayOsWebViewScreen> {
       return false;
     }
 
-    if (uri.scheme != configured.scheme || uri.host != configured.host) {
+    if (uri.host != configured.host) {
       return false;
     }
 
@@ -118,6 +129,19 @@ class _PayOsWebViewScreenState extends State<PayOsWebViewScreen> {
     }
 
     return uri.path.startsWith(configuredPath);
+  }
+
+  void _startWatchingUrl() {
+    _urlWatchTimer = Timer.periodic(const Duration(seconds: 1), (_) async {
+      try {
+        final url = await _controller.currentUrl();
+        if (url != null && _isPaymentCompletionUrl(url)) {
+          _handlePaymentCompletionRedirect();
+        }
+      } catch (e) {
+        debugPrint('PAYMENT URL WATCH ERROR: $e');
+      }
+    });
   }
 
   void _startCheckingPayment() {
@@ -159,7 +183,15 @@ class _PayOsWebViewScreenState extends State<PayOsWebViewScreen> {
         message: 'Thanh toán thành công',
       );
 
-      Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        '/payment-success',
+        (route) => false,
+        arguments: {
+          'paymentStatus': paymentStatus.paymentStatus,
+          'paymentOrderCode': widget.orderCode,
+        },
+      );
     } catch (e) {
       debugPrint('CHECK PAYMENT ERROR: $e');
     } finally {
@@ -170,6 +202,7 @@ class _PayOsWebViewScreenState extends State<PayOsWebViewScreen> {
   @override
   void dispose() {
     _paymentTimer?.cancel();
+    _urlWatchTimer?.cancel();
     super.dispose();
   }
 

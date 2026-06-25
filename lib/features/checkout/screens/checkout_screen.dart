@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/app_notification.dart';
 import '../../profile/models/user_session.dart';
 import '../../payment/screens/payOS_webview_screen.dart';
 
@@ -16,27 +17,21 @@ import '../widgets/new_address_form.dart';
 
 import '../../voucher/models/voucher_model.dart';
 
-
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
 
   @override
-  State<CheckoutScreen> createState() =>
-      _CheckoutScreenState();
+  State<CheckoutScreen> createState() => _CheckoutScreenState();
 }
 
-class _CheckoutScreenState
-    extends State<CheckoutScreen> {
+class _CheckoutScreenState extends State<CheckoutScreen> {
   late CheckoutService _service;
 
-  final _receiverController =
-  TextEditingController();
+  final _receiverController = TextEditingController();
 
-  final _phoneController =
-  TextEditingController();
+  final _phoneController = TextEditingController();
 
-  final _detailController =
-  TextEditingController();
+  final _detailController = TextEditingController();
 
   List<AddressModel> _addresses = [];
   List<VoucherModel> _vouchers = [];
@@ -78,29 +73,16 @@ class _CheckoutScreenState
 
     if (_initialized) return;
 
-    final args =
-        ModalRoute.of(context)
-            ?.settings
-            .arguments;
+    final args = ModalRoute.of(context)?.settings.arguments;
 
     if (args is Map<String, dynamic>) {
       _cart = args;
 
-      _subtotal =
-          (_cart!['totalPrice']
-          as num?)
-              ?.toDouble() ??
-              0;
+      _subtotal = (_cart!['totalPrice'] as num?)?.toDouble() ?? 0;
 
-      _cartItemIds =
-          (_cart!['items'] as List)
-              .map<String>(
-                (e) =>
-                (e['cartItemId'] ??
-                    e['id'])
-                    .toString(),
-          )
-              .toList();
+      _cartItemIds = (_cart!['items'] as List)
+          .map<String>((e) => (e['cartItemId'] ?? e['id']).toString())
+          .toList();
 
       _initializeData();
     }
@@ -110,17 +92,14 @@ class _CheckoutScreenState
 
   Future<void> _initializeData() async {
     try {
-
       final results = await Future.wait([
         _service.fetchAddresses(),
         _service.fetchVouchers(),
       ]);
 
-      final addresses =
-      results[0] as List<AddressModel>;
+      final addresses = results[0] as List<AddressModel>;
 
-      final vouchers =
-      results[1] as List<VoucherModel>;
+      final vouchers = results[1] as List<VoucherModel>;
 
       setState(() {
         _addresses = addresses;
@@ -128,21 +107,15 @@ class _CheckoutScreenState
 
         if (addresses.isNotEmpty) {
           _selectedAddressId = addresses
-              .firstWhere(
-                (e) => e.isDefault,
-            orElse: () => addresses.first,
-          )
+              .firstWhere((e) => e.isDefault, orElse: () => addresses.first)
               .id;
         }
 
-        _showNewAddressForm =
-            addresses.isEmpty;
+        _showNewAddressForm = addresses.isEmpty;
       });
 
       if (_selectedAddressId != null) {
-        await _calculateShippingFee(
-          _selectedAddressId!,
-        );
+        await _calculateShippingFee(_selectedAddressId!);
       }
     } finally {
       if (mounted) {
@@ -153,34 +126,24 @@ class _CheckoutScreenState
     }
   }
 
-  Future<void> _calculateShippingFee(
-      String addressId,
-      ) async {
+  Future<void> _calculateShippingFee(String addressId) async {
     setState(() {
       _calculatingShipping = true;
     });
 
     try {
-      final fee =
-      await _service.calculateShippingFee(
-        addressId,
-      );
+      final fee = await _service.calculateShippingFee(addressId);
 
       setState(() {
         _shippingFee = fee;
       });
 
       // tính lại voucher nếu user đã chọn
-      if (_selectedVoucherCode != null &&
-          _selectedVoucherCode!.isNotEmpty) {
-        _onVoucherChanged(
-          _selectedVoucherCode,
-        );
+      if (_selectedVoucherCode != null && _selectedVoucherCode!.isNotEmpty) {
+        _onVoucherChanged(_selectedVoucherCode);
       }
     } catch (e) {
-      debugPrint(
-        'Calculate shipping error: $e',
-      );
+      debugPrint('Calculate shipping error: $e');
     } finally {
       if (mounted) {
         setState(() {
@@ -191,11 +154,29 @@ class _CheckoutScreenState
   }
 
   Future<void> _checkout() async {
-    final user =
-        UserSession.currentUser;
+    final user = UserSession.currentUser;
 
-    if (user == null ||
-        _selectedAddressId == null) {
+    if (user == null) {
+      AppNotification.showError(
+        context: context,
+        message: 'Vui lòng đăng nhập lại',
+      );
+      return;
+    }
+
+    if (_selectedAddressId == null) {
+      AppNotification.showError(
+        context: context,
+        message: 'Vui lòng chọn địa chỉ giao hàng',
+      );
+      return;
+    }
+
+    if (_cartItemIds.isEmpty) {
+      AppNotification.showError(
+        context: context,
+        message: 'Giỏ hàng không có sản phẩm hợp lệ',
+      );
       return;
     }
 
@@ -204,52 +185,53 @@ class _CheckoutScreenState
     });
 
     try {
-      final result =
-      await _service.checkout(
+      final result = await _service.checkout(
         userId: user.id,
         addressId: _selectedAddressId!,
-        voucherCode:
-        _selectedVoucherCode,
+        voucherCode: _selectedVoucherCode,
         cartItemIds: _cartItemIds,
       );
 
-      if (result == null ||
-          !mounted) {
+      if (result == null || !mounted) {
+        AppNotification.showError(
+          context: context,
+          message: 'Không thể tạo đơn hàng',
+        );
         return;
       }
 
-      final payment =
-      result['payment']
-      as Map<String, dynamic>?;
+      final payment = _asStringMap(result['payment']);
 
-      final checkoutUrl =
-      payment?['checkoutUrl']
-          ?.toString();
+      final checkoutUrl = payment?['checkoutUrl']?.toString();
+      final orderCode = _readOrderCode(result, payment);
 
-      if (checkoutUrl != null &&
-          checkoutUrl.isNotEmpty) {
+      if (checkoutUrl != null && checkoutUrl.isNotEmpty) {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) =>
-                PayOsWebViewScreen(
-                  checkoutUrl:
-                  checkoutUrl,
-                  orderCode:
-                  payment?[
-                  'orderCode'] ??
-                      0,
-                ),
+            builder: (_) => PayOsWebViewScreen(
+              checkoutUrl: checkoutUrl,
+              orderCode: orderCode,
+            ),
           ),
         );
 
         return;
       }
 
-      Navigator.pushReplacementNamed(
-        context,
-        '/orders',
+      AppNotification.showSuccess(
+        context: context,
+        message: 'Đặt hàng thành công',
       );
+
+      Navigator.pushReplacementNamed(context, '/orders');
+    } catch (e) {
+      if (mounted) {
+        AppNotification.showError(
+          context: context,
+          message: e.toString().replaceFirst('Exception: ', ''),
+        );
+      }
     } finally {
       if (mounted) {
         setState(() {
@@ -259,33 +241,47 @@ class _CheckoutScreenState
     }
   }
 
-  void _onVoucherChanged(
-      String? code) {
+  Map<String, dynamic>? _asStringMap(dynamic value) {
+    if (value is Map<String, dynamic>) {
+      return value;
+    }
+    if (value is Map) {
+      return value.map((key, value) => MapEntry(key.toString(), value));
+    }
+    return null;
+  }
+
+  int _readOrderCode(
+    Map<String, dynamic> result,
+    Map<String, dynamic>? payment,
+  ) {
+    final order = _asStringMap(result['order']);
+    final rawOrderCode =
+        payment?['orderCode'] ??
+        payment?['paymentOrderCode'] ??
+        result['orderCode'] ??
+        result['paymentOrderCode'] ??
+        order?['orderCode'] ??
+        order?['paymentOrderCode'];
+
+    return int.tryParse(rawOrderCode?.toString() ?? '') ?? 0;
+  }
+
+  void _onVoucherChanged(String? code) {
     setState(() {
       _selectedVoucherCode = code;
 
-      if (code == null ||
-          code.isEmpty) {
+      if (code == null || code.isEmpty) {
         _discount = 0;
         return;
       }
 
-      final voucher =
-      _vouchers.firstWhere(
-            (e) => e.code == code,
-      );
+      final voucher = _vouchers.firstWhere((e) => e.code == code);
 
-      if (voucher.discountType
-          .toUpperCase() ==
-          'PERCENT') {
-        _discount =
-            (_subtotal +
-                _shippingFee) *
-                voucher.discountValue /
-                100;
+      if (voucher.discountType.toUpperCase() == 'PERCENT') {
+        _discount = (_subtotal + _shippingFee) * voucher.discountValue / 100;
       } else {
-        _discount =
-            voucher.discountValue;
+        _discount = voucher.discountValue;
       }
     });
   }
@@ -293,159 +289,99 @@ class _CheckoutScreenState
   @override
   Widget build(BuildContext context) {
     if (_cart == null) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Đặt hàng',
-        ),
-        backgroundColor:
-        AppColors.wine,
+        title: const Text('Đặt hàng'),
+        backgroundColor: AppColors.wine,
       ),
       body: _loading
-          ? const Center(
-        child:
-        CircularProgressIndicator(),
-      )
+          ? const Center(child: CircularProgressIndicator())
           : ListView(
-        padding:
-        const EdgeInsets.all(
-          16,
-        ),
-        children: [
-          const Text(
-            'Sản phẩm',
-          ),
+              padding: const EdgeInsets.all(16),
+              children: [
+                const Text('Sản phẩm'),
 
-          const SizedBox(
-            height: 12,
-          ),
+                const SizedBox(height: 12),
 
-          ...(_cart!['items']
-          as List)
-              .map(
-                (item) =>
-                CheckoutProductCard(
-                  item: item,
+                ...(_cart!['items'] as List).map(
+                  (item) => CheckoutProductCard(item: item),
                 ),
-          ),
 
-          const SizedBox(
-            height: 20,
-          ),
+                const SizedBox(height: 20),
 
-          const Text(
-            'Địa chỉ giao hàng',
-          ),
+                const Text('Địa chỉ giao hàng'),
 
-          const SizedBox(
-            height: 12,
-          ),
+                const SizedBox(height: 12),
 
-          ..._addresses.map(
-                (address) =>
-                AddressCard(
-                  address: address,
-                  selected:
-                  address.id ==
-                      _selectedAddressId,
-                  onTap: () async {
-                    if (_selectedAddressId ==
-                        address.id) {
-                      return;
-                    }
+                ..._addresses.map(
+                  (address) => AddressCard(
+                    address: address,
+                    selected: address.id == _selectedAddressId,
+                    onTap: () async {
+                      if (_selectedAddressId == address.id) {
+                        return;
+                      }
 
-                    setState(() {
-                      _selectedAddressId =
-                          address.id;
-                    });
+                      setState(() {
+                        _selectedAddressId = address.id;
+                      });
 
-                    await _calculateShippingFee(
-                      address.id,
-                    );
+                      await _calculateShippingFee(address.id);
+                    },
+                  ),
+                ),
+                FloatingActionButton.extended(
+                  onPressed: () async {
+                    await Navigator.pushNamed(context, '/address-form');
+
+                    await _initializeData();
                   },
+                  icon: const Icon(Icons.add),
+                  label: const Text('Thêm địa chỉ'),
                 ),
-          ),
-          FloatingActionButton.extended(
-            onPressed: () async {
-              await Navigator.pushNamed(
-                context,
-                '/address-form',
-              );
+                if (_showNewAddressForm)
+                  NewAddressForm(
+                    receiverController: _receiverController,
+                    phoneController: _phoneController,
+                    detailController: _detailController,
+                    provinces: _provinces,
+                    districts: _districts,
+                    wards: _wards,
+                    selectedProvince: _selectedProvince,
+                    selectedDistrict: _selectedDistrict,
+                    selectedWard: _selectedWard,
+                    onProvinceChanged: (_) {},
+                    onDistrictChanged: (_) {},
+                    onWardChanged: (_) {},
+                  ),
 
-              await _initializeData();
-            },
-            icon: const Icon(Icons.add),
-            label: const Text('Thêm địa chỉ'),
-          ),
-          if (_showNewAddressForm)
-            NewAddressForm(
-              receiverController:
-              _receiverController,
-              phoneController:
-              _phoneController,
-              detailController:
-              _detailController,
-              provinces:
-              _provinces,
-              districts:
-              _districts,
-              wards: _wards,
-              selectedProvince:
-              _selectedProvince,
-              selectedDistrict:
-              _selectedDistrict,
-              selectedWard:
-              _selectedWard,
-              onProvinceChanged:
-                  (_) {},
-              onDistrictChanged:
-                  (_) {},
-              onWardChanged:
-                  (_) {},
+                const SizedBox(height: 16),
+
+                VoucherDropdown(
+                  vouchers: _vouchers,
+                  selectedCode: _selectedVoucherCode,
+                  onChanged: _onVoucherChanged,
+                ),
+
+                const SizedBox(height: 16),
+
+                CheckoutSummary(
+                  subtotal: _subtotal,
+                  shippingFee: _shippingFee,
+                  discount: _discount,
+                  isLoadingShipping: _calculatingShipping,
+                ),
+
+                const SizedBox(height: 16),
+
+                CheckoutBottomBar(
+                  onCheckout: _checkout,
+                  isLoading: _isCheckingOut,
+                ),
+              ],
             ),
-
-          const SizedBox(
-            height: 16,
-          ),
-
-          VoucherDropdown(
-            vouchers: _vouchers,
-            selectedCode:
-            _selectedVoucherCode,
-            onChanged:
-            _onVoucherChanged,
-          ),
-
-          const SizedBox(
-            height: 16,
-          ),
-
-          CheckoutSummary(
-            subtotal: _subtotal,
-            shippingFee:
-            _shippingFee,
-            discount:
-            _discount,
-            isLoadingShipping:
-            _calculatingShipping,
-          ),
-
-          const SizedBox(
-            height: 16,
-          ),
-
-          CheckoutBottomBar(
-            onCheckout:
-            _checkout,
-          ),
-        ],
-      ),
     );
   }
 }
