@@ -36,13 +36,7 @@ class CheckoutService {
 
     return decodeListPayload(data)
         .whereType<Map<String, dynamic>>()
-        .where(
-          (e) =>
-      (e['status'] ?? '')
-          .toString()
-          .toUpperCase() ==
-          'ACTIVE',
-    )
+        .where((e) => (e['status'] ?? '').toString().toUpperCase() == 'ACTIVE')
         .map(AddressModel.fromJson)
         .toList();
   }
@@ -59,24 +53,14 @@ class CheckoutService {
       return [];
     }
 
-    return decodeListPayload(
-      jsonDecode(response.body),
-    )
+    return decodeListPayload(jsonDecode(response.body))
         .whereType<Map<String, dynamic>>()
-        .where(
-          (e) =>
-      (e['status'] ?? '')
-          .toString()
-          .toUpperCase() ==
-          'ACTIVE',
-    )
+        .where((e) => (e['status'] ?? '').toString().toUpperCase() == 'ACTIVE')
         .map(VoucherModel.fromJson)
         .toList();
   }
 
-  Future<double> calculateShippingFee([
-    String? addressId,
-  ]) async {
+  Future<double> calculateShippingFee([String? addressId]) async {
     if (addressId == null) {
       final addresses = await fetchAddresses();
 
@@ -85,7 +69,7 @@ class CheckoutService {
       }
 
       final defaultAddress = addresses.firstWhere(
-            (e) => e.isDefault,
+        (e) => e.isDefault,
         orElse: () => addresses.first,
       );
 
@@ -95,13 +79,9 @@ class CheckoutService {
     final baseUrl = ApiConfig.getBaseUrl(context);
 
     final response = await http.post(
-      Uri.parse(
-        '$baseUrl/shipments/calculate-client',
-      ),
+      Uri.parse('$baseUrl/shipments/calculate-client'),
       headers: apiHeaders(json: true),
-      body: jsonEncode({
-        'addressId': addressId,
-      }),
+      body: jsonEncode({'addressId': addressId}),
     );
 
     if (response.statusCode != 200) {
@@ -110,9 +90,7 @@ class CheckoutService {
 
     final data = jsonDecode(response.body);
 
-    return (data['total_shipping_fee'] as num?)
-        ?.toDouble() ??
-        0;
+    return (data['total_shipping_fee'] as num?)?.toDouble() ?? 0;
   }
 
   Future<String?> createAddress({
@@ -133,9 +111,7 @@ class CheckoutService {
     final baseUrl = ApiConfig.getBaseUrl(context);
 
     final response = await http.post(
-      Uri.parse(
-        '$baseUrl/user-address/${user.id}',
-      ),
+      Uri.parse('$baseUrl/user-address/${user.id}'),
       headers: apiHeaders(json: true),
       body: jsonEncode({
         'receiverName': receiver,
@@ -149,13 +125,11 @@ class CheckoutService {
       }),
     );
 
-    if (response.statusCode != 200 &&
-        response.statusCode != 201) {
+    if (response.statusCode != 200 && response.statusCode != 201) {
       return null;
     }
 
-    final data =
-    jsonDecode(response.body);
+    final data = jsonDecode(response.body);
 
     return data['id']?.toString();
   }
@@ -169,24 +143,22 @@ class CheckoutService {
     final baseUrl = ApiConfig.getBaseUrl(context);
 
     final response = await http.post(
-      Uri.parse(
-        '$baseUrl/orders/checkout',
-      ),
+      Uri.parse('$baseUrl/orders/checkout'),
       headers: apiHeaders(json: true),
       body: jsonEncode({
         'userId': userId,
         'addressId': addressId,
         'voucherCode': voucherCode,
         'cartItemIds': cartItemIds,
+        'returnUrl': ApiConfig.getPayOsReturnUrl(context),
+        'cancelUrl': ApiConfig.getPayOsCancelUrl(context),
       }),
     );
 
-    if (response.statusCode != 200 &&
-        response.statusCode != 201) {
+    if (response.statusCode != 200 && response.statusCode != 201) {
       return null;
     }
 
-    return jsonDecode(response.body)
-    as Map<String, dynamic>;
+    return jsonDecode(response.body) as Map<String, dynamic>;
   }
 }
