@@ -1,31 +1,45 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 
-import '../../../config/api_config.dart';
-import '../../../models/product.dart';
-import '../../../services/api_helpers.dart';
-import '../../../features/product/screens/collection_screen.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../collection/screens/collection_screen.dart';
+import '../../product/models/product.dart';
+import '../services/search_service.dart';
+import '../widgets/search_header.dart';
+import '../widgets/suggestion_section.dart';
+import '../widgets/trending_section.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
 
   @override
-  State<SearchScreen> createState() => _SearchScreenState();
+  State<SearchScreen> createState() =>
+      _SearchScreenState();
 }
 
 class _SearchScreenState extends State<SearchScreen> {
-  static const Color _wine = Color(0xFF902021);
-  static const Color _cream = Color(0xFFFFFAEF);
+  final TextEditingController _controller =
+  TextEditingController();
 
-  final TextEditingController _controller = TextEditingController();
+  final SearchService _searchService =
+  SearchService();
+
   List<Product> _suggestions = [];
+
+  bool _isLoading = false;
+  String? _errorMessage;
+
+  static const List<String> _trends = [
+    'Ruby',
+    'Đá tự nhiên',
+    'Vòng tay',
+    'Aquamarine',
+    'Silver',
+  ];
 
   @override
   void initState() {
     super.initState();
-    _fetchSuggestions();
+    _loadSuggestions();
   }
 
   @override
@@ -34,151 +48,134 @@ class _SearchScreenState extends State<SearchScreen> {
     super.dispose();
   }
 
-  Future<void> _fetchSuggestions() async {
+  Future<void> _loadSuggestions() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
     try {
-      final baseUrl = ApiConfig.getBaseUrl(context);
-      final response = await http.get(Uri.parse('$baseUrl/products'));
-      if (response.statusCode != 200) {
-        return;
-      }
+      final products =
+      await _searchService.getSuggestions(
+        context,
+      );
 
-      final products = decodeListPayload(jsonDecode(response.body))
-          .whereType<Map<String, dynamic>>()
-          .map(Product.fromJson)
-          .where((product) => product.status.toLowerCase() == 'active')
-          .take(5)
-          .toList();
+      if (!mounted) return;
 
-      if (!mounted) {
-        return;
-      }
-      setState(() => _suggestions = products);
-    } catch (_) {}
+      setState(() {
+        _suggestions = products;
+      });
+    } catch (_) {
+      if (!mounted) return;
+
+      setState(() {
+        _errorMessage =
+        'Không thể tải danh sách sản phẩm';
+      });
+    } finally {
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   void _submit([String? value]) {
-    final query = (value ?? _controller.text).trim();
-    if (query.isEmpty) {
-      return;
-    }
+    final query =
+    (value ?? _controller.text).trim();
+
+    if (query.isEmpty) return;
+
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) => CollectionScreen(initialSearch: query),
+        builder: (_) => CollectionScreen(
+          initialSearch: query,
+        ),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final baseUrl = ApiConfig.getBaseUrl(context);
-    final trends = ['Ruby', 'Da tu nhien', 'Vong tay', 'Aquamarine', 'Silver'];
+    final screenWidth =
+        MediaQuery.of(context).size.width;
+
+    final isCompact = screenWidth < 600;
 
     return Scaffold(
-      backgroundColor: _cream,
+      backgroundColor: AppColors.backgroundLight,
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+          padding: EdgeInsets.symmetric(
+            horizontal: isCompact ? 16 : 24,
+            vertical: 24,
+          ),
           children: [
-            Row(
-              children: [
-                const Icon(Icons.search, color: _wine, size: 34),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    autofocus: true,
-                    textInputAction: TextInputAction.search,
-                    onSubmitted: _submit,
-                    style: const TextStyle(
-                      color: _wine,
-                      fontSize: 24,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    decoration: const InputDecoration(
-                      hintText: 'Tim trong Cat Bracelet',
-                      hintStyle: TextStyle(color: Color(0xAA902021)),
-                      border: UnderlineInputBorder(
-                        borderSide: BorderSide(color: _wine, width: 2),
-                      ),
-                      focusedBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: _wine, width: 2),
-                      ),
-                    ),
-                  ),
-                ),
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close, color: _wine, size: 32),
-                ),
-              ],
+            SearchHeader(
+              controller: _controller,
+              onSubmitted: _submit,
             ),
-            const SizedBox(height: 36),
-            const Row(
-              children: [
-                Icon(Icons.trending_up, color: _wine),
-                SizedBox(width: 14),
-                Text(
-                  'Xu huong',
-                  style: TextStyle(
-                    color: _wine,
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
+
+            SizedBox(
+              height: isCompact ? 24 : 32,
             ),
-            const SizedBox(height: 18),
-            ...trends.map(
-              (trend) => ListTile(
-                contentPadding: const EdgeInsets.only(left: 40),
-                title: Text(
-                  trend,
-                  style: const TextStyle(color: _wine, fontSize: 20),
+
+            TrendingSection(
+              trends: _trends,
+              onTap: _submit,
+            ),
+
+            Divider(
+              height: isCompact ? 24 : 40,
+            ),
+
+            if (_isLoading)
+              const Center(
+                child: CircularProgressIndicator(
+                  color: AppColors.wine,
                 ),
-                onTap: () => _submit(trend),
               ),
-            ),
-            const Divider(height: 40),
-            const Row(
-              children: [
-                Icon(Icons.auto_awesome, color: _wine),
-                SizedBox(width: 14),
-                Text(
-                  'Danh cho ban',
-                  style: TextStyle(
-                    color: _wine,
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
+
+            if (_errorMessage != null)
+              Padding(
+                padding:
+                const EdgeInsets.symmetric(
+                  vertical: 24,
+                ),
+                child: Center(
+                  child: Text(
+                    _errorMessage!,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Colors.red,
+                    ),
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 14),
-            ..._suggestions.map((product) {
-              final imageUrl = buildImageUrl(baseUrl, product.thumbnail);
-              return ListTile(
-                contentPadding: const EdgeInsets.symmetric(vertical: 8),
-                leading: SizedBox(
-                  width: 56,
-                  height: 56,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: imageUrl.isEmpty
-                        ? const ColoredBox(
-                            color: Colors.white,
-                            child: Icon(Icons.image_not_supported),
-                          )
-                        : Image.network(imageUrl, fit: BoxFit.cover),
+              ),
+
+            if (!_isLoading &&
+                _errorMessage == null &&
+                _suggestions.isEmpty)
+              const Padding(
+                padding: EdgeInsets.symmetric(
+                  vertical: 24,
+                ),
+                child: Center(
+                  child: Text(
+                    'Không có sản phẩm gợi ý',
                   ),
                 ),
-                title: Text(
-                  product.productName,
-                  style: const TextStyle(color: _wine, fontSize: 18),
-                ),
-                onTap: () => _submit(product.productName),
-              );
-            }),
+              ),
+
+            if (!_isLoading &&
+                _errorMessage == null &&
+                _suggestions.isNotEmpty)
+              SuggestionSection(
+                products: _suggestions,
+                onTap: _submit,
+              ),
           ],
         ),
       ),

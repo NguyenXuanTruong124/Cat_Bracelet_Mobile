@@ -1,10 +1,8 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 
-import '../../../core/config/api_config.dart';
 import '../../../core/theme/app_colors.dart';
+import '../services/auth_service.dart';
+import '../../../core/widgets/app_notification.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
   final String email;
@@ -36,55 +34,54 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     final confirm = _confirmController.text;
 
     if (otp.length != 6) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui lòng nhập mã OTP gồm 6 chữ số')),
+      AppNotification.showError(
+        context: context,
+        message: 'Vui lòng nhập mã OTP gồm 6 chữ số',
       );
       return;
     }
     if (password.length < 6) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Mật khẩu phải có ít nhất 6 ký tự')),
+      AppNotification.showError(
+        context: context,
+        message: 'Mật khẩu phải có ít nhất 6 ký tự',
       );
       return;
     }
     if (password != confirm) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Mật khẩu xác nhận không khớp')),
+      AppNotification.showError(
+        context: context,
+        message: 'Mật khẩu xác nhận không khớp',
       );
       return;
     }
 
     setState(() => _isLoading = true);
     try {
-      final baseUrl = ApiConfig.getBaseUrl(context);
-      final response = await http.post(
-        Uri.parse('$baseUrl/user/reset-password'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': widget.email,
-          'otp': otp,
-          'newPassword': password,
-        }),
+      final response = await AuthService(context).resetPassword(
+        email: widget.email,
+        otp: otp,
+        newPassword: password,
       );
 
       if (!mounted) return;
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Đặt lại mật khẩu thành công. Vui lòng đăng nhập.'),
-          ),
+        AppNotification.showSuccess(
+          context: context,
+          message: 'Đặt lại mật khẩu thành công. Vui lòng đăng nhập.',
         );
         Navigator.popUntil(context, (route) => route.isFirst);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Lỗi ${response.statusCode}: ${response.body}')),
+        AppNotification.showError(
+          context: context,
+          message: 'Lỗi ${response.statusCode}: ${response.body}',
         );
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi kết nối: $e')),
+      AppNotification.showError(
+        context: context,
+        message: 'Lỗi kết nối: $e',
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);

@@ -1,11 +1,9 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 
-import '../../../core/config/api_config.dart';
 import '../../../core/theme/app_colors.dart';
+import '../services/auth_service.dart';
 import 'reset_password_screen.dart';
+import '../../../core/widgets/app_notification.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -28,29 +26,24 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Future<void> _submit() async {
     final email = _emailController.text.trim();
     if (email.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui lòng nhập email')),
+      AppNotification.showError(
+        context: context,
+        message: 'Vui lòng nhập email',
       );
       return;
     }
 
     setState(() => _isLoading = true);
     try {
-      final baseUrl = ApiConfig.getBaseUrl(context);
-      final response = await http.post(
-        Uri.parse('$baseUrl/user/request-password-reset'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'email': email}),
-      );
+      final response = await AuthService(context).requestPasswordReset(email);
 
       if (!mounted) return;
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         setState(() => _sent = true);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('OTP đã được gửi tới email của bạn'),
-          ),
+        AppNotification.showSuccess(
+          context: context,
+          message: 'OTP đã được gửi tới email của bạn',
         );
         Navigator.push(
           context,
@@ -59,14 +52,16 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           ),
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Lỗi ${response.statusCode}: ${response.body}')),
+        AppNotification.showError(
+          context: context,
+          message: 'Lỗi ${response.statusCode}: ${response.body}',
         );
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi kết nối: $e')),
+      AppNotification.showError(
+        context: context,
+        message: 'Lỗi kết nối: $e',
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);

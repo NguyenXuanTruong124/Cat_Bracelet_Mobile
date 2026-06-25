@@ -1,3 +1,5 @@
+import 'package:cat_bracelet_mobile/features/product/models/product_variant_mapping.dart';
+
 class ProductVariants {
   final String id;
   final String sku;
@@ -15,8 +17,8 @@ class ProductVariants {
     required this.stock,
     required this.extraPrice,
     required this.status,
+    this.mappings = const [],
   });
-
   factory ProductVariants.fromJson(Map<String, dynamic> json) {
     return ProductVariants(
       id: (json['id'] ?? json['variantId'] ?? json['variant_id'] ?? '')
@@ -27,8 +29,19 @@ class ProductVariants {
       stock: _toInt(json['stockQuantity'] ?? json['stock_quantity']),
       extraPrice: _toDouble(json['extraPrice'] ?? json['extra_price']),
       status: (json['status'] ?? 'ACTIVE').toString(),
+      mappings:
+      (json['productVariantMappings'] as List?)
+          ?.map(
+            (e) => ProductVariantMapping.fromJson(
+          e as Map<String, dynamic>,
+        ),
+      )
+          .toList() ??
+          [],
     );
   }
+  final List<ProductVariantMapping> mappings;
+
 
   static int _toInt(dynamic value) {
     if (value is int) {
@@ -46,4 +59,5 @@ class ProductVariants {
     }
     return double.tryParse(value?.toString() ?? '') ?? 0;
   }
+
 }

@@ -12,6 +12,7 @@ class AppColors {
   static const outlineVariant = Color(0xFFDDC0BD);
   static const onSurface = Color(0xFF231918);
   static const onSurfaceVariant = Color(0xFF564240);
+  static const backgroundLight = Color(0xFFFFF0EF);
 
   // App-specific brand colors
   static const wine = Color(0xFF902021);

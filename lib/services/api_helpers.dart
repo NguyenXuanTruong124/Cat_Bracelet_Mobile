@@ -1,4 +1,4 @@
-import '../models/user_session.dart';
+import 'package:cat_bracelet_mobile/features/profile/models/user_session.dart';
 
 Map<String, String> apiHeaders({bool json = false}) {
   final headers = <String, String>{};

@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import '../../../core/config/api_config.dart';
 import '../../../core/theme/app_colors.dart';
+import '../services/auth_service.dart';
+import '../../../core/widgets/app_notification.dart';
 
 class OtpScreen extends StatefulWidget {
   const OtpScreen({super.key});
@@ -25,8 +24,9 @@ class _OtpScreenState extends State<OtpScreen> {
     final otp = _otpController.text.trim();
 
     if (otp.length != 6) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui lòng nhập đúng mã OTP gồm 6 chữ số')),
+      AppNotification.showError(
+        context: context,
+        message: 'Vui lòng nhập đúng mã OTP gồm 6 chữ số',
       );
       return;
     }
@@ -36,37 +36,28 @@ class _OtpScreenState extends State<OtpScreen> {
     });
 
     try {
-      final baseUrl = ApiConfig.getBaseUrl(context);
-      final url = Uri.parse('$baseUrl/user/verify-otp');
-
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'email': email, 'otp': otp}),
-      );
+      final response = await AuthService(context).verifyOtp(email, otp);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Xác thực thành công! Vui lòng đăng nhập.'),
-          ),
+        AppNotification.showSuccess(
+          context: context,
+          message: 'Xác thực thành công! Vui lòng đăng nhập.',
         );
         Navigator.pushReplacementNamed(context, '/'); // Go back to login
       } else {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Lỗi ${response.statusCode}: ${response.body}'),
-            duration: const Duration(seconds: 5),
-          ),
+        AppNotification.showError(
+          context: context,
+          message: 'Lỗi ${response.statusCode}: ${response.body}',
         );
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Lỗi kết nối tới Server: $e')));
+      AppNotification.showError(
+        context: context,
+        message: 'Lỗi kết nối tới Server: $e',
+      );
     } finally {
       if (mounted) {
         setState(() {
