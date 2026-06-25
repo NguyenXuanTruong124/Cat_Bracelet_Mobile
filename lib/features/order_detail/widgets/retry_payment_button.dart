@@ -5,12 +5,14 @@ import '../../payment/services/payment_service.dart';
 
 class RetryPaymentButton extends StatelessWidget {
   final String orderId;
+  final int? fallbackOrderCode;
   final VoidCallback onSuccess;
   final Function(String) onError;
 
   const RetryPaymentButton({
     super.key,
     required this.orderId,
+    this.fallbackOrderCode,
     required this.onSuccess,
     required this.onError,
   });
@@ -37,12 +39,20 @@ class RetryPaymentButton extends StatelessWidget {
               return;
             }
 
+            final orderCode = payment.orderCode == 0
+                ? fallbackOrderCode ?? 0
+                : payment.orderCode;
+
+            if (orderCode == 0) {
+              throw Exception('Không lấy được mã thanh toán');
+            }
+
             await Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (_) => PayOsWebViewScreen(
                   checkoutUrl: payment.checkoutUrl,
-                  orderCode: payment.orderCode,
+                  orderCode: orderCode,
                 ),
               ),
             );

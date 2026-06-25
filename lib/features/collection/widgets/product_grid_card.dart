@@ -40,13 +40,10 @@ class ProductGridCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Expanded(flex: 7, child: _ProductImage(imageUrl: imageUrl)),
+            Expanded(flex: 6, child: _ProductImage(imageUrl: imageUrl)),
             Expanded(
-              flex: 4,
-              child: _ProductInfo(
-                product: product,
-                onViewDetails: onTap,
-              ),
+              flex: 5,
+              child: _ProductInfo(product: product, onViewDetails: onTap),
             ),
           ],
         ),
@@ -66,24 +63,24 @@ class _ProductImage extends StatelessWidget {
       color: AppColors.softRose,
       child: imageUrl.isNotEmpty
           ? Image.network(
-        imageUrl,
-        fit: BoxFit.cover,
-        loadingBuilder: (context, child, loadingProgress) {
-          if (loadingProgress == null) {
-            return child;
-          }
-          return const Center(
-            child: CircularProgressIndicator(strokeWidth: 2),
-          );
-        },
-        errorBuilder: (context, error, stackTrace) {
-          return Icon(
-            Icons.image_not_supported,
-            color: Colors.grey,
-            size: 40.sp,
-          );
-        },
-      )
+              imageUrl,
+              fit: BoxFit.cover,
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) {
+                  return child;
+                }
+                return const Center(
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                );
+              },
+              errorBuilder: (context, error, stackTrace) {
+                return Icon(
+                  Icons.image_not_supported,
+                  color: Colors.grey,
+                  size: 40.sp,
+                );
+              },
+            )
           : Icon(Icons.image_not_supported, color: Colors.grey, size: 40.sp),
     );
   }
@@ -98,7 +95,7 @@ class _ProductInfo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.all(10.w),
+      padding: EdgeInsets.all(8.w),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -113,7 +110,7 @@ class _ProductInfo extends StatelessWidget {
               height: 1.3,
             ),
           ),
-          SizedBox(height: 4.h),
+          SizedBox(height: 3.h),
           Text(
             PriceFormatter.format(product.basePrice),
             maxLines: 1,
@@ -141,13 +138,15 @@ class _ViewDetailsButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
-      height: 34.h,
+      height: 30.h,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.wine,
           foregroundColor: Colors.white,
           padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 4.h),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8.r),
+          ),
         ),
         onPressed: onPressed,
         child: FittedBox(

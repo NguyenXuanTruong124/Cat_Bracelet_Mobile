@@ -100,7 +100,9 @@ class _CollectionScreenState extends State<CollectionScreen> {
   Future<void> _loadFilterOptions() async {
     try {
       final baseUrl = ApiConfig.getBaseUrl(context);
-      final options = await _catalogService.fetchFilterOptions(baseUrl: baseUrl);
+      final options = await _catalogService.fetchFilterOptions(
+        baseUrl: baseUrl,
+      );
 
       if (!mounted) return;
       setState(() => _filterOptions = options);
@@ -122,7 +124,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
   }
 
   String _imageUrlOf(Product product) {
-    return buildImageUrl(ApiConfig.getBaseUrl(context), product.thumbnail);
+    return buildImageUrl(ApiConfig.getBaseUrl(context), product.firstImage);
   }
 
   void _clearFilters() {
@@ -139,7 +141,9 @@ class _CollectionScreenState extends State<CollectionScreen> {
   void _openDetails(Product product) {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => ProductDetailsScreen(product: product)),
+      MaterialPageRoute(
+        builder: (context) => ProductDetailsScreen(product: product),
+      ),
     );
   }
 
@@ -147,10 +151,9 @@ class _CollectionScreenState extends State<CollectionScreen> {
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (context) => const HomeScreen()),
-          (route) => false,
+      (route) => false,
     );
   }
-
 
   void _openFilterSheet() {
     showCollectionFilterSheet(
@@ -188,7 +191,10 @@ class _CollectionScreenState extends State<CollectionScreen> {
         children: [
           if (!isCompact) _buildFilterBar(),
           Expanded(
-            child: _buildBody(crossAxisCount: crossAxisCount, screenWidth: screenWidth),
+            child: _buildBody(
+              crossAxisCount: crossAxisCount,
+              screenWidth: screenWidth,
+            ),
           ),
         ],
       ),
@@ -247,7 +253,10 @@ class _CollectionScreenState extends State<CollectionScreen> {
     );
   }
 
-  Widget _buildBody({required int crossAxisCount, required double screenWidth}) {
+  Widget _buildBody({
+    required int crossAxisCount,
+    required double screenWidth,
+  }) {
     if (_isLoading) {
       return const Center(
         child: CircularProgressIndicator(color: AppColors.wine),

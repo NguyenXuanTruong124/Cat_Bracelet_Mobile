@@ -19,18 +19,29 @@ class Payment {
     required this.paymentLinkId,
   });
 
-  factory Payment.fromJson(
-      Map<String, dynamic> json,
-      ) {
+  factory Payment.fromJson(Map<String, dynamic> json) {
+    final data = _asMap(json['data']) ?? json;
+
     return Payment(
-      success: json['success'] ?? false,
-      orderId: json['orderId'] ?? '',
-      orderCode: toInt(json['orderCode']),
-      amount: toDouble(json['amount']),
-      paymentAmountSource:
-      json['paymentAmountSource'] ?? '',
-      checkoutUrl: json['checkoutUrl'] ?? '',
-      paymentLinkId: json['paymentLinkId'] ?? '',
+      success: data['success'] ?? json['success'] ?? false,
+      orderId: data['orderId']?.toString() ?? '',
+      orderCode: toInt(
+        data['orderCode'] ?? data['paymentOrderCode'] ?? data['order_code'],
+      ),
+      amount: toDouble(data['amount']),
+      paymentAmountSource: data['paymentAmountSource']?.toString() ?? '',
+      checkoutUrl: data['checkoutUrl']?.toString() ?? '',
+      paymentLinkId: data['paymentLinkId']?.toString() ?? '',
     );
+  }
+
+  static Map<String, dynamic>? _asMap(dynamic value) {
+    if (value is Map<String, dynamic>) {
+      return value;
+    }
+    if (value is Map) {
+      return value.map((key, value) => MapEntry(key.toString(), value));
+    }
+    return null;
   }
 }

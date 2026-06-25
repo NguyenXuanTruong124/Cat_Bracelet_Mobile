@@ -1,6 +1,9 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+
+import '../../../config/api_config.dart';
 import '../../../core/widgets/app_notification.dart';
 import '../services/payment_service.dart';
 
@@ -19,8 +22,17 @@ class PayOsWebViewScreen extends StatefulWidget {
 }
 
 class _PayOsWebViewScreenState extends State<PayOsWebViewScreen> {
+  static const Set<String> _legacyPaymentReturnHosts = {
+    'home.kaelvercula.me',
+    'truongnguyen.me',
+  };
+
   late final WebViewController _controller;
   Timer? _paymentTimer;
+  Timer? _urlWatchTimer;
+  bool _handlingCompletionRedirect = false;
+  bool _checkingPaymentStatus = false;
+  bool _waitingForPaymentConfirmation = false;
   final PaymentService _paymentService = PaymentService();
 
   @override
@@ -29,12 +41,114 @@ class _PayOsWebViewScreenState extends State<PayOsWebViewScreen> {
 
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onNavigationRequest: (request) {
+            if (_isPaymentCompletionUrl(request.url)) {
+              _handlePaymentCompletionRedirect();
+              return NavigationDecision.prevent;
+            }
+
+            return NavigationDecision.navigate;
+          },
+          onPageStarted: (url) {
+            if (_isPaymentCompletionUrl(url)) {
+              _handlePaymentCompletionRedirect();
+            }
+          },
+          onPageFinished: (url) {
+            if (_isPaymentCompletionUrl(url)) {
+              _handlePaymentCompletionRedirect();
+            }
+          },
+          onUrlChange: (change) {
+            final url = change.url;
+            if (url != null && _isPaymentCompletionUrl(url)) {
+              _handlePaymentCompletionRedirect();
+            }
+          },
+          onWebResourceError: (error) {
+            final url = error.url;
+            debugPrint(
+              'PAYMENT WEBVIEW ERROR: ${error.errorCode} ${error.description} $url',
+            );
+
+            if (url != null && _isPaymentCompletionUrl(url)) {
+              _handlePaymentCompletionRedirect();
+            }
+          },
+        ),
+      )
       ..loadRequest(Uri.parse(widget.checkoutUrl));
 
     _startCheckingPayment();
+    _startWatchingUrl();
+  }
+
+  bool _isPaymentCompletionUrl(String url) {
+    final uri = Uri.tryParse(url);
+    final baseUri = Uri.tryParse(ApiConfig.getBaseUrl(context));
+
+    return (uri != null &&
+            (_legacyPaymentReturnHosts.contains(uri.host) ||
+                uri.host == baseUri?.host)) ||
+        _matchesConfiguredUrl(url, ApiConfig.getPayOsReturnUrl(context)) ||
+        _matchesConfiguredUrl(url, ApiConfig.getPayOsCancelUrl(context));
+  }
+
+  void _handlePaymentCompletionRedirect() {
+    if (_handlingCompletionRedirect) {
+      return;
+    }
+
+    _handlingCompletionRedirect = true;
+    if (mounted) {
+      setState(() {
+        _waitingForPaymentConfirmation = true;
+      });
+    }
+    _controller.loadHtmlString('<html><body></body></html>');
+    _checkPaymentStatus();
+  }
+
+  bool _matchesConfiguredUrl(String url, String configuredUrl) {
+    final uri = Uri.tryParse(url);
+    final configured = Uri.tryParse(configuredUrl);
+
+    if (uri == null || configured == null) {
+      return false;
+    }
+
+    if (uri.host != configured.host) {
+      return false;
+    }
+
+    final configuredPath = configured.path.isEmpty ? '/' : configured.path;
+    if (configuredPath == '/') {
+      return true;
+    }
+
+    return uri.path.startsWith(configuredPath);
+  }
+
+  void _startWatchingUrl() {
+    _urlWatchTimer = Timer.periodic(const Duration(seconds: 1), (_) async {
+      try {
+        final url = await _controller.currentUrl();
+        if (url != null && _isPaymentCompletionUrl(url)) {
+          _handlePaymentCompletionRedirect();
+        }
+      } catch (e) {
+        debugPrint('PAYMENT URL WATCH ERROR: $e');
+      }
+    });
   }
 
   void _startCheckingPayment() {
+    if (_paymentTimer?.isActive == true) {
+      return;
+    }
+
     _paymentTimer = Timer.periodic(
       const Duration(seconds: 3),
       (_) => _checkPaymentStatus(),
@@ -42,6 +156,11 @@ class _PayOsWebViewScreenState extends State<PayOsWebViewScreen> {
   }
 
   Future<void> _checkPaymentStatus() async {
+    if (_checkingPaymentStatus) {
+      return;
+    }
+
+    _checkingPaymentStatus = true;
     try {
       final paymentStatus = await _paymentService.getStatus(
         context,
@@ -49,6 +168,7 @@ class _PayOsWebViewScreenState extends State<PayOsWebViewScreen> {
       );
       debugPrint('PAYMENT STATUS = ${paymentStatus.paymentStatus}');
       if (!paymentStatus.isPaid) {
+        _startCheckingPayment();
         return;
       }
 
@@ -63,15 +183,26 @@ class _PayOsWebViewScreenState extends State<PayOsWebViewScreen> {
         message: 'Thanh toán thành công',
       );
 
-      Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        '/payment-success',
+        (route) => false,
+        arguments: {
+          'paymentStatus': paymentStatus.paymentStatus,
+          'paymentOrderCode': widget.orderCode,
+        },
+      );
     } catch (e) {
       debugPrint('CHECK PAYMENT ERROR: $e');
+    } finally {
+      _checkingPaymentStatus = false;
     }
   }
 
   @override
   void dispose() {
     _paymentTimer?.cancel();
+    _urlWatchTimer?.cancel();
     super.dispose();
   }
 
@@ -79,7 +210,36 @@ class _PayOsWebViewScreenState extends State<PayOsWebViewScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Thanh toán PayOS')),
-      body: WebViewWidget(controller: _controller),
+      body: _waitingForPaymentConfirmation
+          ? const _PaymentConfirmationView()
+          : WebViewWidget(controller: _controller),
+    );
+  }
+}
+
+class _PaymentConfirmationView extends StatelessWidget {
+  const _PaymentConfirmationView();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Padding(
+        padding: EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text(
+              'Đang xác nhận thanh toán...',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            ),
+            SizedBox(height: 8),
+            Text('Vui lòng chờ trong giây lát.', textAlign: TextAlign.center),
+          ],
+        ),
+      ),
     );
   }
 }
