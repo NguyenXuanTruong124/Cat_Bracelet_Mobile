@@ -103,7 +103,10 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                     const SizedBox(height: 12),
                 itemBuilder: (context, index) {
                   final order = _orders[index] as Map<String, dynamic>;
-                  final orderId = order['id']?.toString() ?? '';
+                  final orderId =
+                      (order['id'] ?? order['_id'] ?? order['orderId'])
+                          ?.toString() ??
+                      '';
                   final shortId = orderId.length > 8
                       ? orderId.substring(0, 8).toUpperCase()
                       : orderId;

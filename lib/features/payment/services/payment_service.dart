@@ -37,11 +37,7 @@ class PaymentService {
     final response = await http.post(
       Uri.parse('$baseUrl/api/payment/retry'),
       headers: apiHeaders(json: true),
-      body: jsonEncode({
-        'orderId': orderId,
-        'returnUrl': ApiConfig.getPayOsReturnUrl(context),
-        'cancelUrl': ApiConfig.getPayOsCancelUrl(context),
-      }),
+      body: jsonEncode({'orderId': orderId}),
     );
 
     final data = jsonDecode(response.body);

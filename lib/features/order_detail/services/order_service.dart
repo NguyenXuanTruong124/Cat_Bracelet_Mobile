@@ -7,30 +7,23 @@ import '../models/order_detail_model.dart';
 
 class OrderService {
   Future<OrderDetailModel> getOrderDetail(
-      BuildContext context,
-      String orderId,
-      ) async {
-    final baseUrl =
-    ApiConfig.getBaseUrl(context);
+    BuildContext context,
+    String orderId,
+  ) async {
+    final baseUrl = ApiConfig.getBaseUrl(context);
 
     final response = await http.get(
-      Uri.parse(
-        '$baseUrl/orders/$orderId',
-      ),
+      Uri.parse('$baseUrl/orders/$orderId'),
       headers: apiHeaders(),
     );
 
     if (response.statusCode != 200) {
-      throw Exception(
-        'Không thể tải đơn hàng',
-      );
+      throw Exception('Không thể tải đơn hàng');
     }
 
-    final json =
-    jsonDecode(response.body);
+    final json = jsonDecode(response.body);
+    final data = asStringMap(json['data']) ?? asStringMap(json) ?? {};
 
-    return OrderDetailModel.fromJson(
-      json,
-    );
+    return OrderDetailModel.fromJson(data);
   }
 }

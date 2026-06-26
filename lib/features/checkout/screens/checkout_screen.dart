@@ -132,7 +132,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     });
 
     try {
-      final fee = await _service.calculateShippingFee(addressId);
+      final fee = await _service.calculateShippingFee(
+        addressId: addressId,
+        userId: UserSession.currentUser?.id,
+        cartItemIds: _cartItemIds,
+      );
 
       setState(() {
         _shippingFee = fee;
@@ -144,6 +148,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       }
     } catch (e) {
       debugPrint('Calculate shipping error: $e');
+      if (mounted) {
+        AppNotification.showError(
+          context: context,
+          message: e.toString().replaceFirst('Exception: ', ''),
+        );
+      }
     } finally {
       if (mounted) {
         setState(() {

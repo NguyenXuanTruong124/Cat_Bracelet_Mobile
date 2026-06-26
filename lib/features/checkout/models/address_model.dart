@@ -19,11 +19,12 @@ class AddressModel {
     required this.isDefault,
   });
 
-  factory AddressModel.fromJson(
-      Map<String, dynamic> json,
-      ) {
+  factory AddressModel.fromJson(Map<String, dynamic> json) {
     return AddressModel(
-      id: json['id']?.toString() ?? '',
+      id:
+          (json['id'] ?? json['_id'] ?? json['addressId'] ?? json['address_id'])
+              ?.toString() ??
+          '',
       receiverName: json['receiverName'] ?? '',
       phone: json['phone'] ?? '',
       province: json['province'] ?? '',

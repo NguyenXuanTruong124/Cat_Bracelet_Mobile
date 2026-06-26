@@ -26,6 +26,10 @@ class RetryPaymentButton extends StatelessWidget {
         label: const Text('THANH TOÁN LẠI'),
         onPressed: () async {
           try {
+            if (orderId.trim().isEmpty) {
+              throw Exception('Không lấy được mã đơn hàng');
+            }
+
             final payment = await PaymentService().retryPayment(
               context,
               orderId,

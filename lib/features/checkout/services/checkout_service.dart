@@ -60,7 +60,11 @@ class CheckoutService {
         .toList();
   }
 
-  Future<double> calculateShippingFee([String? addressId]) async {
+  Future<double> calculateShippingFee({
+    String? addressId,
+    String? userId,
+    List<String>? cartItemIds,
+  }) async {
     if (addressId == null) {
       final addresses = await fetchAddresses();
 
@@ -81,16 +85,48 @@ class CheckoutService {
     final response = await http.post(
       Uri.parse('$baseUrl/shipments/calculate-client'),
       headers: apiHeaders(json: true),
-      body: jsonEncode({'addressId': addressId}),
+      body: jsonEncode({
+        'addressId': addressId,
+        if (userId != null && userId.isNotEmpty) 'userId': userId,
+        if (cartItemIds != null && cartItemIds.isNotEmpty)
+          'cartItemIds': cartItemIds,
+      }),
     );
 
     if (response.statusCode != 200) {
-      return 0;
+      throw Exception(_readErrorMessage(response.body, response.statusCode));
     }
 
-    final data = jsonDecode(response.body);
+    final decoded = jsonDecode(response.body);
+    final data = asStringMap(decoded['data']) ?? asStringMap(decoded) ?? {};
 
-    return (data['total_shipping_fee'] as num?)?.toDouble() ?? 0;
+    return toDouble(
+      data['total_shipping_fee'] ??
+          data['totalShippingFee'] ??
+          data['shippingFee'] ??
+          data['shipping_fee'] ??
+          data['fee'] ??
+          data['total_fee'] ??
+          data['totalFee'],
+    );
+  }
+
+  String _readErrorMessage(String body, int statusCode) {
+    try {
+      final decoded = jsonDecode(body);
+      final data = asStringMap(decoded['data']) ?? asStringMap(decoded);
+      final message = data?['message'] ?? data?['error'];
+
+      if (message is List && message.isNotEmpty) {
+        return message.join(', ');
+      }
+
+      if (message != null && message.toString().trim().isNotEmpty) {
+        return message.toString();
+      }
+    } catch (_) {}
+
+    return 'Không tính được phí ship ($statusCode)';
   }
 
   Future<String?> createAddress({

@@ -42,74 +42,48 @@ class OrderDetailModel {
     this.voucherType,
   });
 
-  factory OrderDetailModel.fromJson(
-      Map<String, dynamic> json,
-      ) {
-    final rawItems =
-        (json['items'] as List?) ?? [];
+  factory OrderDetailModel.fromJson(Map<String, dynamic> json) {
+    final rawItems = (json['items'] as List?) ?? [];
 
     return OrderDetailModel(
-      id: json['id']?.toString() ?? '',
+      id:
+          (json['id'] ?? json['_id'] ?? json['orderId'] ?? json['order_id'])
+              ?.toString() ??
+          '',
 
       status: json['status'] ?? '',
 
-      paymentStatus:
-      json['paymentStatus'] ?? '',
+      paymentStatus: json['paymentStatus'] ?? '',
 
-      totalAmount:
-      (json['totalAmount'] ?? 0)
-          .toDouble(),
+      totalAmount: (json['totalAmount'] ?? 0).toDouble(),
 
-      shippingFee:
-      (json['shippingFee'] ?? 0)
-          .toDouble(),
+      shippingFee: (json['shippingFee'] ?? 0).toDouble(),
 
-      canRetryPayment:
-      json['canRetryPayment'] == true,
+      canRetryPayment: json['canRetryPayment'] == true,
 
-      createdAt:
-      DateTime.tryParse(
-        json['createdAt'] ?? '',
-      ) ??
-          DateTime.now(),
+      createdAt: DateTime.tryParse(json['createdAt'] ?? '') ?? DateTime.now(),
 
-      paidAt: json['paidAt'] != null
-          ? DateTime.tryParse(
-        json['paidAt'],
-      )
-          : null,
+      paidAt: json['paidAt'] != null ? DateTime.tryParse(json['paidAt']) : null,
 
       paymentOrderCode:
-      json['paymentOrderCode']
-          ?.toString(),
+          (json['paymentOrderCode'] ?? json['orderCode'] ?? json['order_code'])
+              ?.toString(),
 
       address: json['address'] != null
-          ? ShippingAddressModel.fromJson(
-        json['address'],
-      )
+          ? ShippingAddressModel.fromJson(json['address'])
           : null,
 
-      items: rawItems
-          .map(
-            (e) => OrderItemModel.fromJson(
-          e,
-        ),
-      )
-          .toList(),
+      items: rawItems.map((e) => OrderItemModel.fromJson(e)).toList(),
 
-      voucherCode:
-      json['voucher']?['code']?.toString(),
+      voucherCode: json['voucher']?['code']?.toString(),
 
-      voucherValue: double.tryParse(
-        json['voucher']?['discountValue']
-            ?.toString() ??
-            '0',
-      ) ??
+      voucherValue:
+          double.tryParse(
+            json['voucher']?['discountValue']?.toString() ?? '0',
+          ) ??
           0,
 
-      voucherType:
-      json['voucher']?['discountType']
-          ?.toString(),
+      voucherType: json['voucher']?['discountType']?.toString(),
     );
   }
 }
