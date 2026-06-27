@@ -33,7 +33,6 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
     _fill(UserSession.currentUser);
 
     _loadProfile();
-
   }
 
   void _fill(AppUser? user) {
@@ -65,13 +64,17 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
       AppNotification.showSuccess(
         context: context,
         message: 'Đã cập nhật thông tin',
-      );    }
+      );
+    }
     if (mounted) setState(() => _isLoading = false);
   }
 
   Future<void> _uploadAvatar() async {
     final picker = ImagePicker();
-    final image = await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+    final image = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
+    );
     if (image == null) return;
 
     setState(() => _isLoading = true);
@@ -81,10 +84,10 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
       AppNotification.showSuccess(
         context: context,
         message: 'Đã tải ảnh đại diện lên thành công',
-      );    }
+      );
+    }
     if (mounted) setState(() => _isLoading = false);
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -108,6 +111,11 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
             icon: Icons.receipt_long_outlined,
             title: 'Đơn hàng của tôi',
             onTap: () => Navigator.pushNamed(context, '/orders'),
+          ),
+          MenuTile(
+            icon: Icons.support_agent_outlined,
+            title: 'Hỗ trợ trực tuyến',
+            onTap: () => Navigator.pushNamed(context, '/support'),
           ),
           MenuTile(
             icon: Icons.location_on_outlined,
@@ -160,10 +168,10 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
             onPressed: _isLoading ? null : _saveProfile,
             icon: _isLoading
                 ? const SizedBox(
-              width: 18,
-              height: 18,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            )
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
                 : const Icon(Icons.save),
             label: const Text('Lưu thông tin'),
           ),
@@ -171,5 +179,4 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
       ),
     );
   }
-
 }

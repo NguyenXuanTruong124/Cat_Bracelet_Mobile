@@ -17,6 +17,10 @@ import '../../features/notification/screen/notification_screen.dart';
 import '../../features/order_detail/screens/order_detail_screen.dart';
 import '../../features/payment/screens/payment_screen.dart';
 
+import '../../features/support/screens/support_ticket_screen.dart';
+import '../../features/support/screens/chat_support_screen.dart';
+import '../../features/support/models/support_ticket.dart';
+
 class AppRoutes {
   static Map<String, WidgetBuilder> routes = {
     '/': (context) => const LoginScreen(),
@@ -35,6 +39,7 @@ class AppRoutes {
     '/addresses': (context) => const DeliveryAddressScreen(),
     '/address-form': (context) => const AddressFormScreen(),
     '/payment-success': (context) => const PaymentScreen(),
+    '/support': (context) => const SupportTicketScreen(),
   };
 
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
@@ -43,6 +48,12 @@ class AppRoutes {
       final orderId = settings.arguments as String? ?? '';
       return MaterialPageRoute(
         builder: (context) => OrderDetailScreen(orderId: orderId),
+      );
+    }
+    if (settings.name == '/chat-support') {
+      final ticket = settings.arguments as SupportTicket;
+      return MaterialPageRoute(
+        builder: (context) => ChatSupportScreen(ticket: ticket),
       );
     }
     return null;

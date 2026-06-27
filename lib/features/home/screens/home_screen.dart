@@ -32,11 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _logout() {
     UserSession.clear();
-    Navigator.pushNamedAndRemoveUntil(
-      context,
-      '/',
-          (route) => false,
-    );
+    Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
   }
 
   @override
@@ -60,8 +56,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-
-
     return Scaffold(
       backgroundColor: const Color(0xFFF9F6F2),
       bottomNavigationBar: NavigationBar(
@@ -75,6 +69,8 @@ class _HomeScreenState extends State<HomeScreen> {
           } else if (index == 2) {
             Navigator.pushNamed(context, '/vouchers');
           } else if (index == 3) {
+            Navigator.pushNamed(context, '/support');
+          } else if (index == 4) {
             Navigator.pushNamed(context, '/profile');
           }
         },
@@ -93,6 +89,11 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icon(Icons.local_activity_outlined),
             selectedIcon: Icon(Icons.local_activity),
             label: 'Voucher',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.chat_outlined),
+            selectedIcon: Icon(Icons.chat),
+            label: 'Hỗ trợ',
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outline),
@@ -114,19 +115,15 @@ class _HomeScreenState extends State<HomeScreen> {
               flexibleSpace: Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [
-                      _wine,
-                      _wine.withValues(alpha: 0.92),
-                    ],
+                    colors: [_wine, _wine.withValues(alpha: 0.92)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                 ),
               ),
               leading: Padding(
-                padding: EdgeInsets.only(left: 12.w),                child: UserAvatarMenu(
-                  onLogout: _logout,
-                ),
+                padding: EdgeInsets.only(left: 12.w),
+                child: UserAvatarMenu(onLogout: _logout),
               ),
               centerTitle: true,
               title: FittedBox(
@@ -147,16 +144,11 @@ class _HomeScreenState extends State<HomeScreen> {
               actions: [
                 Badge(
                   isLabelVisible: _unreadCount > 0,
-                  label: Text(
-                    _unreadCount.toString(),
-                  ),
+                  label: Text(_unreadCount.toString()),
                   child: IconButton(
                     tooltip: 'Thông báo',
                     onPressed: () async {
-                      await Navigator.pushNamed(
-                        context,
-                        '/notifications',
-                      );
+                      await Navigator.pushNamed(context, '/notifications');
 
                       _loadUnreadCount();
                     },
@@ -168,48 +160,32 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 IconButton(
                   tooltip: 'Tìm kiếm',
-                  onPressed: () =>
-                      Navigator.pushNamed(context, '/search'),
-                  icon: const Icon(
-                    Icons.search,
-                    color: Colors.white,
-                  ),
+                  onPressed: () => Navigator.pushNamed(context, '/search'),
+                  icon: const Icon(Icons.search, color: Colors.white),
                 ),
                 const CartIconBadge(),
                 SizedBox(width: 8.w),
               ],
             ),
 
-            SliverToBoxAdapter(
-              child: SizedBox(height: 4.h),
-            ),
+            SliverToBoxAdapter(child: SizedBox(height: 4.h)),
 
-            const SliverToBoxAdapter(
-              child: HomeSearchBar(),
-            ),
+            const SliverToBoxAdapter(child: HomeSearchBar()),
 
-             SliverToBoxAdapter(
-              child: SizedBox(height: 12.h)
-            ),
+            SliverToBoxAdapter(child: SizedBox(height: 12.h)),
 
-            const SliverToBoxAdapter(
-              child: SizedBox(height: 24),
-            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
             SliverToBoxAdapter(
               child: Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 16.w,
-                ),
+                padding: EdgeInsets.symmetric(horizontal: 16.w),
                 child: Center(
                   child: ConstrainedBox(
-                    constraints:
-                    const BoxConstraints(maxWidth: 1200),
+                    constraints: const BoxConstraints(maxWidth: 1200),
                     child: Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius:
-                        BorderRadius.circular(24.r),
+                        borderRadius: BorderRadius.circular(24.r),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withValues(alpha: 0.06),
@@ -225,15 +201,11 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
-            const SliverToBoxAdapter(
-              child: SizedBox(height: 36),
-            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 36)),
 
             SliverToBoxAdapter(
               child: Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 20.w,
-                ),
+                padding: EdgeInsets.symmetric(horizontal: 20.w),
                 child: Column(
                   children: [
                     Text(
@@ -252,7 +224,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Colors.grey.shade700,
-                          fontSize: 14.sp,
+                        fontSize: 14.sp,
                       ),
                     ),
                     SizedBox(height: 24.h),
@@ -260,28 +232,22 @@ class _HomeScreenState extends State<HomeScreen> {
                       width: 280.w,
                       child: ElevatedButton(
                         onPressed: () {
-                          Navigator.pushNamed(
-                            context,
-                            '/collection',
-                          );
+                          Navigator.pushNamed(context, '/collection');
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: _wine,
                           foregroundColor: Colors.white,
                           elevation: 4,
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 16,
-                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
-                            borderRadius:
-                            BorderRadius.circular(14.r),
+                            borderRadius: BorderRadius.circular(14.r),
                           ),
                         ),
                         child: Text(
                           'Khám phá bộ sưu tập',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                              fontSize: 15.sp
+                            fontSize: 15.sp,
                           ),
                         ),
                       ),
@@ -291,63 +257,46 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
-            const SliverToBoxAdapter(
-              child: SizedBox(height: 40),
-            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 40)),
 
             SliverToBoxAdapter(
               child: Center(
                 child: ConstrainedBox(
-                  constraints:
-                  const BoxConstraints(maxWidth: 1200),
+                  constraints: const BoxConstraints(maxWidth: 1200),
                   child: const FeaturesSection(),
                 ),
               ),
             ),
 
-            const SliverToBoxAdapter(
-              child: SizedBox(height: 24),
-            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
             SliverToBoxAdapter(
               child: Center(
                 child: ConstrainedBox(
-                  constraints:
-                  const BoxConstraints(maxWidth: 1200),
+                  constraints: const BoxConstraints(maxWidth: 1200),
                   child: const AboutSection(),
                 ),
               ),
             ),
 
-            const SliverToBoxAdapter(
-              child: SizedBox(height: 24),
-            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
             SliverToBoxAdapter(
               child: Center(
                 child: ConstrainedBox(
-                  constraints:
-                  const BoxConstraints(maxWidth: 1200),
+                  constraints: const BoxConstraints(maxWidth: 1200),
                   child: const TestimonialsSection(),
                 ),
               ),
             ),
 
-            const SliverToBoxAdapter(
-              child: SizedBox(height: 24),
-            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
-            const SliverToBoxAdapter(
-              child: HomeVoucherSection(),
-            ),
+            const SliverToBoxAdapter(child: HomeVoucherSection()),
 
-            const SliverToBoxAdapter(
-              child: SizedBox(height: 24),
-            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
-            const SliverToBoxAdapter(
-              child: FooterSection(),
-            ),
+            const SliverToBoxAdapter(child: FooterSection()),
           ],
         ),
       ),
