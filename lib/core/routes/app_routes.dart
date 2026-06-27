@@ -20,6 +20,7 @@ import '../../features/payment/screens/payment_screen.dart';
 import '../../features/support/screens/support_ticket_screen.dart';
 import '../../features/support/screens/chat_support_screen.dart';
 import '../../features/support/models/support_ticket.dart';
+import '../../features/shop/screens/shop_location_screen.dart';
 
 class AppRoutes {
   static Map<String, WidgetBuilder> routes = {
@@ -40,6 +41,7 @@ class AppRoutes {
     '/address-form': (context) => const AddressFormScreen(),
     '/payment-success': (context) => const PaymentScreen(),
     '/support': (context) => const SupportTicketScreen(),
+    '/shops': (context) => const ShopLocationScreen(),
   };
 
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {

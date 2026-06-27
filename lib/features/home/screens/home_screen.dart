@@ -67,7 +67,7 @@ class _HomeScreenState extends State<HomeScreen> {
           if (index == 1) {
             Navigator.pushNamed(context, '/collection');
           } else if (index == 2) {
-            Navigator.pushNamed(context, '/vouchers');
+            Navigator.pushNamed(context, '/shops');
           } else if (index == 3) {
             Navigator.pushNamed(context, '/support');
           } else if (index == 4) {
@@ -86,9 +86,9 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Sản phẩm',
           ),
           NavigationDestination(
-            icon: Icon(Icons.local_activity_outlined),
-            selectedIcon: Icon(Icons.local_activity),
-            label: 'Voucher',
+            icon: Icon(Icons.diamond_outlined),
+            selectedIcon: Icon(Icons.diamond),
+            label: 'Cửa hàng',
           ),
           NavigationDestination(
             icon: Icon(Icons.chat_outlined),
