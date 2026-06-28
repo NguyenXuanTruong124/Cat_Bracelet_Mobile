@@ -24,7 +24,7 @@ class FeaturesSection extends StatelessWidget{
             width: 130.w,
             child: _buildFeatureItem(
               'assets/images/thanhtay.png',
-              'Thanh tẩy',
+              'THANH TẨY',
               'Làm sạch năng lượng xấu, loại bỏ tạp khí.',
             ),
           ),
@@ -88,8 +88,27 @@ class FeaturesSection extends StatelessWidget{
 
           SizedBox(height: 12.h),
 
-          Text(title),
-          Text(subtitle),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 15.sp,
+              fontWeight: FontWeight.bold,
+              color: AppColors.wine,
+            ),
+          ),
+
+          SizedBox(height: 4.h),
+
+          Text(
+            subtitle,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 12.sp,
+              color: Colors.black54,
+              height: 1.4,
+            ),
+          ),
         ],
       ),
     );
