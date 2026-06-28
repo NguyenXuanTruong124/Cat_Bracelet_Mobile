@@ -33,19 +33,41 @@ class SupportSocketService {
       return;
     }
 
+    if (socket != null) {
+      socket?.dispose();
+      socket = null;
+    }
+
     final token = UserSession.accessToken;
-    print('DEBUG: Connecting Socket to $baseUrl');
+    if (token == null || token.isEmpty) {
+      print('DEBUG: Socket connect aborted: missing access token');
+      _connectionController.add(false);
+      return;
+    }
+
+    var sanitizedUrl = baseUrl.trim();
+    if (sanitizedUrl.length >= 2) {
+      final first = sanitizedUrl[0];
+      final last = sanitizedUrl[sanitizedUrl.length - 1];
+      if ((first == "'" && last == "'") || (first == '"' && last == '"')) {
+        sanitizedUrl = sanitizedUrl.substring(1, sanitizedUrl.length - 1);
+      }
+    }
+    print('DEBUG: Raw BASE_URL: "$baseUrl"');
+    print('DEBUG: Sanitized BASE_URL: "$sanitizedUrl"');
+
+    final headers = {'Authorization': 'Bearer $token'};
 
     socket = IO.io(
-      baseUrl,
+      sanitizedUrl,
       IO.OptionBuilder()
-          .setTransports(['websocket']) // Ưu tiên websocket thuần cho ổn định
-          .setQuery({
-            'token': token ?? '',
-            // Thử bỏ chữ Bearer trong query vì một số server Socket.IO chỉ nhận chuỗi JWT thuần
-          })
-          .setPath('/socket.io/')
+          .setTransports(['websocket'])
+          .setExtraHeaders(headers)
+          .setPath('/socket.io')
           .enableForceNew()
+          .setReconnectionAttempts(5)
+          .setReconnectionDelay(2000)
+          .setReconnectionDelayMax(10000)
           .build(),
     );
 
@@ -56,6 +78,23 @@ class SupportSocketService {
 
     socket!.onAny((event, data) {
       print('DEBUG: Socket Event Received: $event -> $data');
+    });
+
+    socket!.on('connect_error', (data) {
+      print('DEBUG: Connect Error: $data');
+      _connectionController.add(false);
+    });
+
+    socket!.on('error', (data) {
+      print('DEBUG: Socket Error: $data');
+    });
+
+    socket!.on('reconnect_attempt', (attempt) {
+      print('DEBUG: Socket reconnect attempt: $attempt');
+    });
+
+    socket!.on('reconnect_failed', (_) {
+      print('DEBUG: Socket reconnect failed');
     });
 
     socket!.on('chatHistory', (data) {
@@ -88,19 +127,25 @@ class SupportSocketService {
   }
 
   void joinTicket(String ticketId) {
-    if (socket == null || !socket!.connected) return;
+    if (socket == null) {
+      print('DEBUG: Cannot join ticket. Socket not initialized.');
+      return;
+    }
 
     _currentTicketId = ticketId;
 
-    // Gửi payload chính xác như trong tool test
-    final payload = {
-      'ticket_id': ticketId,
-      'message':
-          'Joining chat...', // Thử gửi một message mồi như screenshot bạn làm
-    };
+    final payload = {'ticket_id': ticketId};
 
-    print('DEBUG: Emitting joinTicket: $payload');
-    socket?.emit('joinTicket', payload);
+    print('DEBUG: Emitting joinTicket with payload: $payload');
+
+    Future.delayed(const Duration(milliseconds: 800), () {
+      if (socket == null || !socket!.connected) {
+        print('DEBUG: Cannot emit joinTicket. Socket not connected anymore.');
+        return;
+      }
+
+      socket?.emit('joinTicket', payload);
+    });
   }
 
   /// Gửi tin nhắn qua event "sendMessage"

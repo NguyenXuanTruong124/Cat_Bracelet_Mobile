@@ -4,10 +4,12 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'core/routes/app_routes.dart';
 import 'core/theme/app_theme.dart';
+import 'features/profile/models/user_session.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
+  await UserSession.initialize();
   runApp(const CatBraceletApp());
 }
 
@@ -25,7 +27,7 @@ class CatBraceletApp extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           title: 'Cat Bracelet',
           theme: AppTheme.lightTheme,
-          initialRoute: '/',
+          initialRoute: UserSession.isLoggedIn ? '/home' : '/',
           routes: AppRoutes.routes,
           onGenerateRoute: AppRoutes.onGenerateRoute,
         );

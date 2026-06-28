@@ -30,8 +30,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   int _unreadCount = 0;
 
-  void _logout() {
-    UserSession.clear();
+  Future<void> _logout() async {
+    await UserSession.clear();
     Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
   }
 

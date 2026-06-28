@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
-import '../../../core/theme/app_colors.dart';
 import '../../profile/models/user_session.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../services/auth_service.dart';
@@ -44,7 +43,7 @@ class _LoginScreenState extends State<LoginScreen> {
         final decoded = jsonDecode(response.body);
 
         if (decoded is Map<String, dynamic>) {
-          UserSession.setFromLogin(decoded);
+          await UserSession.setFromLogin(decoded);
         }
 
         if (!mounted) return;
@@ -54,16 +53,11 @@ class _LoginScreenState extends State<LoginScreen> {
           message: 'Đăng nhập thành công',
         );
 
-        await Future.delayed(
-          const Duration(milliseconds: 800),
-        );
+        await Future.delayed(const Duration(milliseconds: 800));
 
         if (!mounted) return;
 
-        Navigator.pushReplacementNamed(
-          context,
-          '/home',
-        );
+        Navigator.pushReplacementNamed(context, '/home');
       } else {
         if (!mounted) return;
         AppNotification.showError(
@@ -162,4 +156,3 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
-

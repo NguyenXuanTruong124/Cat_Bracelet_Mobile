@@ -1,6 +1,5 @@
 import 'package:cat_bracelet_mobile/config/api_config.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/services/api_helpers.dart';
 import '../services/cart_service.dart';
@@ -49,11 +48,6 @@ class _CartScreenState extends State<CartScreen> {
     _fetchCart();
   }
 
-  String _price(dynamic value) {
-    return NumberFormat.currency(locale: 'vi_VN', symbol: 'đ')
-        .format(toDouble(value));
-  }
-
   @override
   Widget build(BuildContext context) {
     final items = decodeListPayload(_cart?['items']);
@@ -70,19 +64,19 @@ class _CartScreenState extends State<CartScreen> {
           : items.isEmpty
           ? const Center(child: Text('Giỏ hàng đang trống'))
           : ListView.separated(
-        padding: const EdgeInsets.all(16),
-        itemCount: items.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 12),
-        itemBuilder: (context, index) {
-          final item = items[index] as Map<String, dynamic>;
-          return CartItemCard(
-            item: item,
-            baseUrl: baseUrl,
-            onUpdateQuantity: _updateQuantity,
-            onRemoveItem: _removeItem,
-          );
-        },
-      ),
+              padding: const EdgeInsets.all(16),
+              itemCount: items.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              itemBuilder: (context, index) {
+                final item = items[index] as Map<String, dynamic>;
+                return CartItemCard(
+                  item: item,
+                  baseUrl: baseUrl,
+                  onUpdateQuantity: _updateQuantity,
+                  onRemoveItem: _removeItem,
+                );
+              },
+            ),
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -91,7 +85,10 @@ class _CartScreenState extends State<CartScreen> {
               Expanded(
                 child: Text(
                   'Tổng: ${PriceFormatter.format(toInt(_cart?['totalPrice']))}', // 👈 dùng formatPrice
-                  style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
               IconButton(
@@ -99,32 +96,34 @@ class _CartScreenState extends State<CartScreen> {
                 onPressed: items.isEmpty
                     ? null
                     : () async {
-                  final confirm = await showDialog<bool>(
-                    context: context,
-                    builder: (ctx) => AlertDialog(
-                      title: const Text('Xác nhận'),
-                      content: const Text('Bạn có thật sự muốn xóa hết giỏ hàng không?'),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.of(ctx).pop(false),
-                          child: const Text('Không'),
-                        ),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.redAccent,
+                        final confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            title: const Text('Xác nhận'),
+                            content: const Text(
+                              'Bạn có thật sự muốn xóa hết giỏ hàng không?',
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(ctx).pop(false),
+                                child: const Text('Không'),
+                              ),
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.redAccent,
+                                ),
+                                onPressed: () => Navigator.of(ctx).pop(true),
+                                child: const Text('Có'),
+                              ),
+                            ],
                           ),
-                          onPressed: () => Navigator.of(ctx).pop(true),
-                          child: const Text('Có'),
-                        ),
-                      ],
-                    ),
-                  );
+                        );
 
-                  if (confirm == true) {
-                    await _cartService.clearCart();
-                    _fetchCart();
-                  }
-                },
+                        if (confirm == true) {
+                          await _cartService.clearCart();
+                          _fetchCart();
+                        }
+                      },
                 icon: const Icon(Icons.delete_forever, color: Colors.redAccent),
               ),
               const SizedBox(width: 8),
@@ -136,12 +135,12 @@ class _CartScreenState extends State<CartScreen> {
                 onPressed: items.isEmpty
                     ? null
                     : () {
-                  Navigator.pushNamed(
-                    context,
-                    '/checkout',
-                    arguments: _cart,
-                  );
-                },
+                        Navigator.pushNamed(
+                          context,
+                          '/checkout',
+                          arguments: _cart,
+                        );
+                      },
                 icon: const Icon(Icons.payments),
                 label: const Text('Đặt hàng'),
               ),
