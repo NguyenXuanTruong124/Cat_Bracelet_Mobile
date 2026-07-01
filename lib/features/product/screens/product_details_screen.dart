@@ -69,16 +69,15 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
             .whereType<Map<String, dynamic>>()
             .map(ProductVariants.fromJson)
             .where((variant) {
-          if (variant.status.toUpperCase() != 'ACTIVE') {
-            return false;
-          }
+              if (variant.status.toUpperCase() != 'ACTIVE') {
+                return false;
+              }
 
-          return variant.mappings.any(
+              return variant.mappings.any(
                 (m) =>
-            m.productId == _product.id &&
-                m.product?.status == 'ACTIVE',
-          );
-        })
+                    m.productId == _product.id && m.product?.status == 'ACTIVE',
+              );
+            })
             .toList();
       }
 
@@ -159,9 +158,9 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
 
     try {
       final baseUrl = ApiConfig.getBaseUrl(context);
-      final response = await http.post(
+      final response = await apiPost(
         Uri.parse('$baseUrl/cart/add'),
-        headers: apiHeaders(json: true),
+        json: true,
         body: jsonEncode({'variantId': _selectedVariant!.id, 'quantity': 1}),
       );
 
@@ -197,10 +196,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
         return Center(
           child: Container(
             width: 180,
-            padding: const EdgeInsets.symmetric(
-              horizontal: 20,
-              vertical: 24,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
             decoration: BoxDecoration(
               color: Colors.black87,
               borderRadius: BorderRadius.circular(16),

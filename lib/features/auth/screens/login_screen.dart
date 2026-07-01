@@ -1,3 +1,4 @@
+import 'package:cat_bracelet_mobile/core/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import '../../profile/models/user_session.dart';
@@ -57,7 +58,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
         if (!mounted) return;
 
-        Navigator.pushReplacementNamed(context, '/home');
+        Navigator.pushReplacementNamed(context, AppRoutes.home);
       } else {
         if (!mounted) return;
         AppNotification.showError(

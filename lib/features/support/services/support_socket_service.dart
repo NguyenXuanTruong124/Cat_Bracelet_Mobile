@@ -27,7 +27,7 @@ class SupportSocketService {
   String? _currentTicketId;
   String? get currentTicketId => _currentTicketId;
 
-  void connect(String baseUrl) {
+  Future<void> connect(String baseUrl) async {
     if (socket != null && socket!.connected) {
       _connectionController.add(true);
       return;
@@ -39,6 +39,12 @@ class SupportSocketService {
     }
 
     final token = UserSession.accessToken;
+
+    if (token == null || token.isEmpty) {
+      _connectionController.add(false);
+      return;
+    }
+
     if (token == null || token.isEmpty) {
       print('DEBUG: Socket connect aborted: missing access token');
       _connectionController.add(false);

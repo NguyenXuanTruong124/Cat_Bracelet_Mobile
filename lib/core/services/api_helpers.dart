@@ -1,15 +1,117 @@
+import 'dart:convert';
+import 'package:cat_bracelet_mobile/core/services/session_manager.dart';
+import 'package:http/http.dart' as http;
 import '../../features/profile/models/user_session.dart';
+import '../exceptions/auth_exception.dart';
 
 Map<String, String> apiHeaders({bool json = false}) {
   final headers = <String, String>{};
+
   if (json) {
     headers['Content-Type'] = 'application/json';
   }
+
   final token = UserSession.accessToken;
-  if (token != null && token.isNotEmpty) {
+
+  if (token?.isNotEmpty ?? false) {
     headers['Authorization'] = 'Bearer $token';
   }
+
   return headers;
+}
+
+Future<bool> refreshAccessToken() async {
+  return await UserSession.refreshTokens();
+}
+
+Future<http.Response> sendAuthenticatedRequest(
+  Future<http.Response> Function() request, {
+  bool retry = true,
+}) async {
+  try {
+    final response = await request();
+
+    if (!retry || (response.statusCode != 401 && response.statusCode != 403)) {
+      return response;
+    }
+
+    final refreshed = await refreshAccessToken();
+
+    if (!refreshed) {
+      await SessionManager.logout();
+      throw const SessionExpiredException();
+    }
+
+    return await request();
+  } on http.ClientException {
+    throw Exception('Không thể kết nối đến máy chủ');
+  } on FormatException {
+    throw Exception('Dữ liệu trả về không hợp lệ');
+  } catch (_) {
+    rethrow;
+  }
+}
+
+Future<http.Response> apiGet(Uri url, {bool json = false}) async {
+  return await sendAuthenticatedRequest(
+    () => http
+        .get(url, headers: apiHeaders(json: json))
+        .timeout(const Duration(seconds: 20)),
+  );
+}
+
+Future<http.Response> apiPost(
+  Uri url, {
+  Object? body,
+  Encoding? encoding,
+  bool json = false,
+}) async {
+  return await sendAuthenticatedRequest(
+    () => http
+        .post(
+          url,
+          headers: apiHeaders(json: json),
+          body: body,
+          encoding: encoding,
+        )
+        .timeout(const Duration(seconds: 20)),
+  );
+}
+
+Future<http.Response> apiPatch(
+  Uri url, {
+  Object? body,
+  Encoding? encoding,
+  bool json = false,
+}) async {
+  return await sendAuthenticatedRequest(
+    () => http
+        .patch(
+          url,
+          headers: apiHeaders(json: json),
+          body: body,
+          encoding: encoding,
+        )
+        .timeout(const Duration(seconds: 20)),
+  );
+}
+
+Future<http.Response> apiDelete(
+  Uri url, {
+  Object? body,
+  Encoding? encoding,
+  bool json = false,
+}) async {
+  return await sendAuthenticatedRequest(
+    () => http
+        .delete(
+          url,
+          headers: apiHeaders(json: json),
+          body: body,
+          encoding: encoding,
+        )
+        .timeout(const Duration(seconds: 20)),
+  );
 }
 
 List<dynamic> decodeListPayload(dynamic decoded) {

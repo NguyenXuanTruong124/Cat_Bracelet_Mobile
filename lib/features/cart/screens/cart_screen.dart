@@ -1,5 +1,6 @@
 import 'package:cat_bracelet_mobile/config/api_config.dart';
 import 'package:flutter/material.dart';
+import '../../../core/routes/app_routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/services/api_helpers.dart';
 import '../services/cart_service.dart';
@@ -137,7 +138,7 @@ class _CartScreenState extends State<CartScreen> {
                     : () {
                         Navigator.pushNamed(
                           context,
-                          '/checkout',
+                          AppRoutes.checkout,
                           arguments: _cart,
                         );
                       },

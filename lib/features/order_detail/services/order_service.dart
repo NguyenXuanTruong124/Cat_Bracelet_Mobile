@@ -12,10 +12,7 @@ class OrderService {
   ) async {
     final baseUrl = ApiConfig.getBaseUrl(context);
 
-    final response = await http.get(
-      Uri.parse('$baseUrl/orders/$orderId'),
-      headers: apiHeaders(),
-    );
+    final response = await apiGet(Uri.parse('$baseUrl/orders/$orderId'));
 
     if (response.statusCode != 200) {
       throw Exception('Không thể tải đơn hàng');

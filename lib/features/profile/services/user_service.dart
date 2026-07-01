@@ -14,9 +14,8 @@ class UserService {
     if (user == null) return null;
 
     final baseUrl = ApiConfig.getBaseUrl(context);
-    final response = await http.get(
+    final response = await apiGet(
       Uri.parse('$baseUrl/user/profile/${user.id}'),
-      headers: apiHeaders(),
     );
 
     if (response.statusCode == 200) {
@@ -28,17 +27,19 @@ class UserService {
     return null;
   }
 
-  static Future<AppUser?> saveProfile(context,
-      {required String fullName,
-      required String phone,
-      required String avatar}) async {
+  static Future<AppUser?> saveProfile(
+    context, {
+    required String fullName,
+    required String phone,
+    required String avatar,
+  }) async {
     final user = UserSession.currentUser;
     if (user == null) return null;
 
     final baseUrl = ApiConfig.getBaseUrl(context);
-    final response = await http.patch(
+    final response = await apiPatch(
       Uri.parse('$baseUrl/user/profile/${user.id}'),
-      headers: apiHeaders(json: true),
+      json: true,
       body: jsonEncode({
         'fullName': fullName,
         'phone': phone,
@@ -77,11 +78,13 @@ class UserService {
       throw Exception('Định dạng ảnh không hỗ trợ');
     }
 
-    request.files.add(await http.MultipartFile.fromPath(
-      'avatar',
-      image.path,
-      contentType: mediaType,
-    ));
+    request.files.add(
+      await http.MultipartFile.fromPath(
+        'avatar',
+        image.path,
+        contentType: mediaType,
+      ),
+    );
 
     final response = await request.send();
     return response.statusCode == 200;

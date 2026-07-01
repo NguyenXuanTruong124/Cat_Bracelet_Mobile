@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../config/api_config.dart';
+import '../../../core/services/api_helpers.dart';
 
 class UserAvatar extends StatelessWidget {
   final String avatarUrl;
@@ -7,10 +9,16 @@ class UserAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final resolvedUrl = avatarUrl.isNotEmpty
+        ? buildImageUrl(ApiConfig.getBaseUrl(context), avatarUrl)
+        : '';
+
     return CircleAvatar(
       radius: 46,
-      backgroundImage: avatarUrl.isNotEmpty ? NetworkImage(avatarUrl) : null,
-      child: avatarUrl.isEmpty ? const Icon(Icons.person, size: 44) : null,
+      backgroundImage: resolvedUrl.isNotEmpty
+          ? NetworkImage(resolvedUrl)
+          : null,
+      child: resolvedUrl.isEmpty ? const Icon(Icons.person, size: 44) : null,
     );
   }
 }

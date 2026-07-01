@@ -12,9 +12,9 @@ class PaymentService {
   Future<Payment> createPayment(BuildContext context, String orderId) async {
     final baseUrl = ApiConfig.getBaseUrl(context);
 
-    final response = await http.post(
+    final response = await apiPost(
       Uri.parse('$baseUrl/api/payment/create'),
-      headers: apiHeaders(json: true),
+      json: true,
       body: jsonEncode({
         'orderId': orderId,
         'returnUrl': ApiConfig.getPayOsReturnUrl(context),
@@ -34,9 +34,9 @@ class PaymentService {
   Future<Payment> retryPayment(BuildContext context, String orderId) async {
     final baseUrl = ApiConfig.getBaseUrl(context);
 
-    final response = await http.post(
+    final response = await apiPost(
       Uri.parse('$baseUrl/api/payment/retry'),
-      headers: apiHeaders(json: true),
+      json: true,
       body: jsonEncode({'orderId': orderId}),
     );
 
@@ -55,9 +55,8 @@ class PaymentService {
   ) async {
     final baseUrl = ApiConfig.getBaseUrl(context);
 
-    final response = await http.get(
+    final response = await apiGet(
       Uri.parse('$baseUrl/api/payment/status/$orderCode'),
-      headers: apiHeaders(),
     );
 
     debugPrint('PAYMENT STATUS CODE: ${response.statusCode}');
@@ -77,9 +76,8 @@ class PaymentService {
   ) async {
     final baseUrl = ApiConfig.getBaseUrl(context);
 
-    final response = await http.get(
+    final response = await apiGet(
       Uri.parse('$baseUrl/api/payment/info/$orderCode'),
-      headers: apiHeaders(),
     );
 
     if (response.statusCode >= 200 && response.statusCode < 300) {

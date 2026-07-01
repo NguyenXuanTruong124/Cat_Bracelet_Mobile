@@ -10,10 +10,7 @@ class ShopService {
 
   Future<List<ShopLocation>> fetchActiveShops() async {
     try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/shop-location/active'),
-        headers: apiHeaders(),
-      );
+      final response = await apiGet(Uri.parse('$baseUrl/shop-location/active'));
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);

@@ -1,8 +1,8 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import '../../../core/routes/app_routes.dart';
 import '../../../core/utils/date_formatter.dart';
 import '../../../config/api_config.dart';
 import '../../profile/models/user_session.dart';
@@ -36,9 +36,8 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
 
     try {
       final baseUrl = ApiConfig.getBaseUrl(context);
-      final response = await http.get(
+      final response = await apiGet(
         Uri.parse('$baseUrl/orders/user/${user.id}'),
-        headers: apiHeaders(),
       );
       if (response.statusCode == 200) {
         _orders = decodeListPayload(jsonDecode(response.body));
@@ -120,7 +119,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                       borderRadius: BorderRadius.circular(12),
                       onTap: () => Navigator.pushNamed(
                         context,
-                        '/order-tracking',
+                        AppRoutes.orderDetail,
                         arguments: orderId,
                       ),
                       child: Container(

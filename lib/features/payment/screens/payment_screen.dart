@@ -1,3 +1,4 @@
+import 'package:cat_bracelet_mobile/core/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -47,7 +48,7 @@ class PaymentScreen extends StatelessWidget {
             const SizedBox(height: 24),
             OutlinedButton.icon(
               onPressed: () =>
-                  Navigator.pushReplacementNamed(context, '/orders'),
+                  Navigator.pushReplacementNamed(context, AppRoutes.orders),
               icon: const Icon(Icons.receipt_long),
               label: const Text('Xem lịch sử đơn hàng'),
             ),
@@ -59,7 +60,7 @@ class PaymentScreen extends StatelessWidget {
               ),
               onPressed: () => Navigator.pushNamedAndRemoveUntil(
                 context,
-                '/home',
+                AppRoutes.home,
                 (route) => false,
               ),
               icon: const Icon(Icons.home),

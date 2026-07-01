@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../config/api_config.dart';
+import '../../../core/routes/app_routes.dart';
 import '../../../core/services/api_helpers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../cart/widgets/cart_icon_badge.dart';
@@ -183,29 +184,31 @@ class _CollectionScreenState extends State<CollectionScreen> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isCompact = screenWidth < 700;
-    final crossAxisCount = _crossAxisCountFor(screenWidth);
 
     return Scaffold(
       appBar: _buildAppBar(isCompact: isCompact),
       body: Column(
         children: [
           if (!isCompact) _buildFilterBar(),
-          Expanded(
-            child: _buildBody(
-              crossAxisCount: crossAxisCount,
-              screenWidth: screenWidth,
-            ),
-          ),
+          Expanded(child: _buildBody(screenWidth: screenWidth)),
         ],
       ),
     );
   }
 
-  int _crossAxisCountFor(double screenWidth) {
-    if (screenWidth >= 1200) return 5;
-    if (screenWidth >= 900) return 4;
-    if (screenWidth >= 600) return 3;
-    return 2;
+  double _gridMaxCrossAxisExtent(double screenWidth) {
+    if (screenWidth >= 1600) return 300;
+    if (screenWidth >= 1200) return 260;
+    if (screenWidth >= 1000) return 240;
+    if (screenWidth >= 800) return 220;
+    return 180;
+  }
+
+  double _childAspectRatioFor(double screenWidth) {
+    if (screenWidth >= 1200) return 0.78;
+    if (screenWidth >= 1000) return 0.74;
+    if (screenWidth >= 800) return 0.7;
+    return 0.62;
   }
 
   PreferredSizeWidget _buildAppBar({required bool isCompact}) {
@@ -225,7 +228,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
         IconButton(
           icon: const Icon(Icons.search),
           tooltip: 'Tìm kiếm',
-          onPressed: () => Navigator.pushNamed(context, '/search'),
+          onPressed: () => Navigator.pushNamed(context, AppRoutes.search),
         ),
         if (isCompact)
           IconButton(
@@ -253,10 +256,11 @@ class _CollectionScreenState extends State<CollectionScreen> {
     );
   }
 
-  Widget _buildBody({
-    required int crossAxisCount,
-    required double screenWidth,
-  }) {
+  Widget _buildBody({required double screenWidth}) {
+    final spacing = 16.0;
+    final maxCrossAxisExtent = _gridMaxCrossAxisExtent(screenWidth);
+    final childAspectRatio = _childAspectRatioFor(screenWidth);
+
     if (_isLoading) {
       return const Center(
         child: CircularProgressIndicator(color: AppColors.wine),
@@ -273,23 +277,30 @@ class _CollectionScreenState extends State<CollectionScreen> {
       return const Center(child: Text('Không có sản phẩm phù hợp'));
     }
 
-    return GridView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: _products.length,
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: crossAxisCount,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-        childAspectRatio: screenWidth < 600 ? 0.55 : 0.75,
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: screenWidth >= 1400 ? 1400 : screenWidth,
+        ),
+        child: GridView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: _products.length,
+          gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+            maxCrossAxisExtent: maxCrossAxisExtent,
+            crossAxisSpacing: spacing,
+            mainAxisSpacing: spacing,
+            childAspectRatio: childAspectRatio,
+          ),
+          itemBuilder: (context, index) {
+            final product = _products[index];
+            return ProductGridCard(
+              product: product,
+              imageUrl: _imageUrlOf(product),
+              onTap: () => _openDetails(product),
+            );
+          },
+        ),
       ),
-      itemBuilder: (context, index) {
-        final product = _products[index];
-        return ProductGridCard(
-          product: product,
-          imageUrl: _imageUrlOf(product),
-          onTap: () => _openDetails(product),
-        );
-      },
     );
   }
 }

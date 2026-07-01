@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
 import '../../../core/services/api_helpers.dart';
 import '../models/support_ticket.dart';
 
@@ -12,9 +11,9 @@ class SupportService {
   /// Response: {"id": "...", "user_id": "...", "status": "open", "created_at": "..."}
   Future<SupportTicket?> createTicket() async {
     try {
-      final response = await http.post(
+      final response = await apiPost(
         Uri.parse('$baseUrl/support-tickets'),
-        headers: apiHeaders(json: true),
+        json: true,
       );
 
       print('DEBUG: createTicket status: ${response.statusCode}');
@@ -37,9 +36,8 @@ class SupportService {
   /// GET /support-tickets/my-tickets - Lấy danh sách tickets của user
   Future<List<SupportTicket>> fetchMyTickets() async {
     try {
-      final response = await http.get(
+      final response = await apiGet(
         Uri.parse('$baseUrl/support-tickets/my-tickets'),
-        headers: apiHeaders(),
       );
 
       print('DEBUG: fetchMyTickets status: ${response.statusCode}');

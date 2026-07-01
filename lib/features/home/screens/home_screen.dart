@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/routes/app_routes.dart';
+import '../../../core/services/session_manager.dart';
 import '../../../core/theme/app_colors.dart';
 import 'package:cat_bracelet_mobile/features/profile/models/user_session.dart';
 import '../../notification/services/notification_service.dart';
@@ -31,7 +33,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int _unreadCount = 0;
 
   Future<void> _logout() async {
-    await UserSession.clear();
+    await SessionManager.logout();
     Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
   }
 
@@ -65,13 +67,13 @@ class _HomeScreenState extends State<HomeScreen> {
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         onDestinationSelected: (index) {
           if (index == 1) {
-            Navigator.pushNamed(context, '/collection');
+            Navigator.pushNamed(context, AppRoutes.collection);
           } else if (index == 2) {
-            Navigator.pushNamed(context, '/shops');
+            Navigator.pushNamed(context, AppRoutes.shops);
           } else if (index == 3) {
-            Navigator.pushNamed(context, '/support');
+            Navigator.pushNamed(context, AppRoutes.support);
           } else if (index == 4) {
-            Navigator.pushNamed(context, '/profile');
+            Navigator.pushNamed(context, AppRoutes.profile);
           }
         },
         destinations: const [
@@ -148,7 +150,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: IconButton(
                     tooltip: 'Thông báo',
                     onPressed: () async {
-                      await Navigator.pushNamed(context, '/notifications');
+                      await Navigator.pushNamed(context, AppRoutes.notifications);
 
                       _loadUnreadCount();
                     },
@@ -160,7 +162,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 IconButton(
                   tooltip: 'Tìm kiếm',
-                  onPressed: () => Navigator.pushNamed(context, '/search'),
+                  onPressed: () => Navigator.pushNamed(context, AppRoutes.search),
                   icon: const Icon(Icons.search, color: Colors.white),
                 ),
                 const CartIconBadge(),
@@ -228,30 +230,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     SizedBox(height: 24.h),
-                    SizedBox(
-                      width: 280.w,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.pushNamed(context, '/collection');
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _wine,
-                          foregroundColor: Colors.white,
-                          elevation: 4,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14.r),
-                          ),
-                        ),
-                        child: Text(
-                          'Khám phá bộ sưu tập',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15.sp,
-                          ),
-                        ),
-                      ),
-                    ),
                   ],
                 ),
               ),

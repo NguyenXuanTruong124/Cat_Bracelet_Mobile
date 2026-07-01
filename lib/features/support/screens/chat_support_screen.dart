@@ -1,12 +1,13 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../../profile/models/user_session.dart';
 import '../models/support_message.dart';
 import '../models/support_ticket.dart';
+import '../services/support_message_cache.dart';
 import '../services/support_socket_service.dart';
 import '../widgets/chat_bubble.dart';
 import '../widgets/message_input.dart';
+import '../../../config/api_config.dart';
 
 class ChatSupportScreen extends StatefulWidget {
   final SupportTicket ticket;
@@ -24,6 +25,7 @@ class _ChatSupportScreenState extends State<ChatSupportScreen> {
   bool _isLoading = true;
   bool _isConnected = false;
 
+  Timer? _fallbackTimer;
   StreamSubscription? _historySub;
   StreamSubscription? _messageSub;
   StreamSubscription? _connectionSub;
@@ -35,13 +37,28 @@ class _ChatSupportScreenState extends State<ChatSupportScreen> {
     _initChat();
   }
 
-  void _initChat() {
-    final baseUrl = dotenv.env['BASE_URL'] ?? '';
+  Future<void> _initChat() async {
+    final baseUrl = ApiConfig.getBaseUrl(context);
+
+    final cachedMessages = await SupportMessageCache.load(widget.ticket.id);
+    if (mounted && cachedMessages.isNotEmpty) {
+      setState(() {
+        _messages.clear();
+        _messages.addAll(cachedMessages);
+        _messages.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+        _isLoading = false;
+      });
+      _scrollToBottom();
+    }
 
     // 1. Lắng nghe trạng thái kết nối
     _connectionSub = _socketService.onConnectionChange.listen((connected) {
-      if (mounted) {
-        setState(() => _isConnected = connected);
+      if (!mounted) return;
+
+      setState(() => _isConnected = connected);
+
+      if (connected) {
+        _joinTicket();
       }
     });
 
@@ -54,6 +71,7 @@ class _ChatSupportScreenState extends State<ChatSupportScreen> {
           _messages.sort((a, b) => a.createdAt.compareTo(b.createdAt));
           _isLoading = false;
         });
+        SupportMessageCache.save(widget.ticket.id, history);
         _scrollToBottom();
       }
     });
@@ -72,20 +90,13 @@ class _ChatSupportScreenState extends State<ChatSupportScreen> {
     });
 
     // 5. Kết nối Socket
-    _socketService.connect(baseUrl);
-
-    // 6. Join ticket - nếu đã connected thì join ngay, nếu chưa thì chờ
+    await _socketService.connect(baseUrl);
     if (_socketService.isConnected) {
       _joinTicket();
-    } else {
-      // Chờ connect thành công rồi join
-      _socketService.socket?.on('connect', (_) {
-        _joinTicket();
-      });
     }
 
     // 7. Timeout fallback - nếu 5s chưa có data thì tắt loading
-    Future.delayed(const Duration(seconds: 5), () {
+    _fallbackTimer = Timer(const Duration(seconds: 5), () {
       if (mounted && _isLoading) {
         setState(() => _isLoading = false);
       }
@@ -119,6 +130,7 @@ class _ChatSupportScreenState extends State<ChatSupportScreen> {
       }
       _messages.sort((a, b) => a.createdAt.compareTo(b.createdAt));
     });
+    SupportMessageCache.save(widget.ticket.id, _messages);
     _scrollToBottom();
   }
 
@@ -161,6 +173,7 @@ class _ChatSupportScreenState extends State<ChatSupportScreen> {
 
   @override
   void dispose() {
+    _fallbackTimer?.cancel();
     _historySub?.cancel();
     _messageSub?.cancel();
     _connectionSub?.cancel();

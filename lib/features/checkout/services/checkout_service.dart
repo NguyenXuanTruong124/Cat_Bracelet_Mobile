@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 
 import '../../../config/api_config.dart';
 import '../../../core/services/api_helpers.dart';
@@ -23,9 +22,8 @@ class CheckoutService {
 
     final baseUrl = ApiConfig.getBaseUrl(context);
 
-    final response = await http.get(
+    final response = await apiGet(
       Uri.parse('$baseUrl/user-address/${user.id}'),
-      headers: apiHeaders(),
     );
 
     if (response.statusCode != 200) {
@@ -44,10 +42,7 @@ class CheckoutService {
   Future<List<VoucherModel>> fetchVouchers() async {
     final baseUrl = ApiConfig.getBaseUrl(context);
 
-    final response = await http.get(
-      Uri.parse('$baseUrl/vouchers'),
-      headers: apiHeaders(),
-    );
+    final response = await apiGet(Uri.parse('$baseUrl/vouchers'));
 
     if (response.statusCode != 200) {
       return [];
@@ -82,9 +77,9 @@ class CheckoutService {
 
     final baseUrl = ApiConfig.getBaseUrl(context);
 
-    final response = await http.post(
+    final response = await apiPost(
       Uri.parse('$baseUrl/shipments/calculate-client'),
-      headers: apiHeaders(json: true),
+      json: true,
       body: jsonEncode({
         'addressId': addressId,
         if (userId != null && userId.isNotEmpty) 'userId': userId,
@@ -146,9 +141,9 @@ class CheckoutService {
 
     final baseUrl = ApiConfig.getBaseUrl(context);
 
-    final response = await http.post(
+    final response = await apiPost(
       Uri.parse('$baseUrl/user-address/${user.id}'),
-      headers: apiHeaders(json: true),
+      json: true,
       body: jsonEncode({
         'receiverName': receiver,
         'phone': phone,
@@ -187,9 +182,9 @@ class CheckoutService {
   }) async {
     final baseUrl = ApiConfig.getBaseUrl(context);
 
-    final response = await http.post(
+    final response = await apiPost(
       Uri.parse('$baseUrl/orders/checkout'),
-      headers: apiHeaders(json: true),
+      json: true,
       body: jsonEncode({
         'userId': userId,
         'addressId': addressId,

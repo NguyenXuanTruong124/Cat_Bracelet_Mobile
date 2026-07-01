@@ -1,9 +1,10 @@
+import 'package:cat_bracelet_mobile/core/routes/app_routes.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../models/shop_location.dart';
 import '../services/shop_service.dart';
+import '../../../config/api_config.dart';
 
 class ShopLocationScreen extends StatefulWidget {
   const ShopLocationScreen({super.key});
@@ -27,7 +28,7 @@ class _ShopLocationScreenState extends State<ShopLocationScreen> {
   @override
   void initState() {
     super.initState();
-    final baseUrl = dotenv.env['BASE_URL'] ?? '';
+    final baseUrl = ApiConfig.getBaseUrl(context);
     _shopService = ShopService(baseUrl: baseUrl);
     _loadShops();
   }
@@ -88,10 +89,10 @@ class _ShopLocationScreenState extends State<ShopLocationScreen> {
         backgroundColor: Colors.white,
         indicatorColor: _wine.withValues(alpha: 0.12),
         onDestinationSelected: (index) {
-          if (index == 0) Navigator.pushReplacementNamed(context, '/home');
-          if (index == 1) Navigator.pushNamed(context, '/collection');
-          if (index == 3) Navigator.pushNamed(context, '/support');
-          if (index == 4) Navigator.pushNamed(context, '/profile');
+          if (index == 0) Navigator.pushReplacementNamed(context, AppRoutes.home);
+          if (index == 1) Navigator.pushNamed(context, AppRoutes.collection);
+          if (index == 3) Navigator.pushNamed(context, AppRoutes.support);
+          if (index == 4) Navigator.pushNamed(context, AppRoutes.profile);
         },
         destinations: const [
           NavigationDestination(

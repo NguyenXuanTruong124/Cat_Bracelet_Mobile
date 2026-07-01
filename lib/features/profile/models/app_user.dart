@@ -24,17 +24,29 @@ class AppUser {
 
     return AppUser(
       id: (json['id'] ?? '').toString(),
-      fullName: (json['fullName'] ?? json['full_name'] ?? 'Khach hang').toString(),
+      fullName: (json['fullName'] ?? json['full_name'] ?? 'Khach hang')
+          .toString(),
       email: (json['email'] ?? '').toString(),
       phone: json['phone']?.toString(),
-      avatar: json['avatar']?.toString(),
+      avatar:
+          (json['avatar'] ??
+                  json['avatarUrl'] ??
+                  json['avatar_url'] ??
+                  json['photo'] ??
+                  json['photoUrl'] ??
+                  json['photo_url'] ??
+                  json['image'] ??
+                  json['imageUrl'] ??
+                  json['image_url'])
+              ?.toString(),
       vipLevelName: vipLevel is Map<String, dynamic>
           ? (vipLevel['levelName'] ?? vipLevel['level_name'])?.toString()
           : null,
       vipBenefits: vipLevel is Map<String, dynamic>
           ? vipLevel['benefits']?.toString()
           : null,
-      totalSpending: (json['totalSpending'] ?? json['total_spending'] ?? '0').toString(),
+      totalSpending: (json['totalSpending'] ?? json['total_spending'] ?? '0')
+          .toString(),
     );
   }
 
@@ -57,5 +69,18 @@ class AppUser {
       vipBenefits: vipBenefits ?? this.vipBenefits,
       totalSpending: totalSpending ?? this.totalSpending,
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'fullName': fullName,
+      'email': email,
+      'phone': phone,
+      'avatar': avatar,
+      'vipLevelName': vipLevelName,
+      'vipBenefits': vipBenefits,
+      'totalSpending': totalSpending,
+    };
   }
 }

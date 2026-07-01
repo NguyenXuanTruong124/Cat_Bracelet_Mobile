@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:intl/intl.dart';
 import '../models/support_ticket.dart';
 import '../services/support_service.dart';
 import 'chat_support_screen.dart';
+import '../../../config/api_config.dart';
 
 class SupportTicketScreen extends StatefulWidget {
   const SupportTicketScreen({super.key});
@@ -21,7 +21,7 @@ class _SupportTicketScreenState extends State<SupportTicketScreen> {
   @override
   void initState() {
     super.initState();
-    final baseUrl = dotenv.env['BASE_URL'] ?? '';
+    final baseUrl = ApiConfig.getBaseUrl(context);
     _supportService = SupportService(baseUrl: baseUrl);
     _loadTickets();
   }

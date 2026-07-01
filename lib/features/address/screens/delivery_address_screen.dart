@@ -37,16 +37,15 @@ class _DeliveryAddressScreenState extends State<DeliveryAddressScreen> {
 
     try {
       final baseUrl = ApiConfig.getBaseUrl(context);
-      final response = await http.get(
+      final response = await apiGet(
         Uri.parse('$baseUrl/user-address/${user.id}'),
-        headers: apiHeaders(),
       );
       if (response.statusCode == 200) {
         _addresses = decodeListPayload(jsonDecode(response.body))
             .whereType<Map<String, dynamic>>()
             .where(
               (a) => (a['status'] ?? '').toString().toUpperCase() == 'ACTIVE',
-        )
+            )
             .toList();
       }
     } finally {
@@ -59,9 +58,9 @@ class _DeliveryAddressScreenState extends State<DeliveryAddressScreen> {
     if (user == null) return;
 
     final baseUrl = ApiConfig.getBaseUrl(context);
-    final response = await http.patch(
+    final response = await apiPatch(
       Uri.parse('$baseUrl/user-address/${user.id}/$addressId/default'),
-      headers: apiHeaders(json: true),
+      json: true,
     );
 
     if (response.statusCode == 200) {
@@ -100,9 +99,8 @@ class _DeliveryAddressScreenState extends State<DeliveryAddressScreen> {
     );
     if (confirmed != true) return;
 
-    final response = await http.delete(
+    final response = await apiDelete(
       Uri.parse('$baseUrl/user-address/${user.id}/$addressId'),
-      headers: apiHeaders(),
     );
 
     if (response.statusCode == 200) {
@@ -152,39 +150,40 @@ class _DeliveryAddressScreenState extends State<DeliveryAddressScreen> {
       floatingActionButton: user == null
           ? null
           : FloatingActionButton.extended(
-        onPressed: () => _openForm(),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.add_location_alt),
-        label: const Text('Thêm địa chỉ'),
-      ),
+              onPressed: () => _openForm(),
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              icon: const Icon(Icons.add_location_alt),
+              label: const Text('Thêm địa chỉ'),
+            ),
       body: user == null
           ? const Center(child: Text('Vui lòng đăng nhập'))
           : _isLoading
           ? const Center(
-        child: CircularProgressIndicator(color: AppColors.primary),
-      )
+              child: CircularProgressIndicator(color: AppColors.primary),
+            )
           : _addresses.isEmpty
           ? _buildEmpty()
           : RefreshIndicator(
-        color: AppColors.primary,
-        onRefresh: _fetchAddresses,
-        child: ListView.separated(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
-          itemCount: _addresses.length,
-          separatorBuilder: (context, index) => const SizedBox(height: 12),
-          itemBuilder: (context, index) {
-            return AddressCard(
-              address: _addresses[index],
-              onEdit: () => _openForm(address: _addresses[index]),
-              onDelete: () =>
-                  _deleteAddress(_addresses[index]['id'].toString()),
-              onSetDefault: () =>
-                  _setDefault(_addresses[index]['id'].toString()),
-            );
-          },
-        ),
-      ),
+              color: AppColors.primary,
+              onRefresh: _fetchAddresses,
+              child: ListView.separated(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+                itemCount: _addresses.length,
+                separatorBuilder: (context, index) =>
+                    const SizedBox(height: 12),
+                itemBuilder: (context, index) {
+                  return AddressCard(
+                    address: _addresses[index],
+                    onEdit: () => _openForm(address: _addresses[index]),
+                    onDelete: () =>
+                        _deleteAddress(_addresses[index]['id'].toString()),
+                    onSetDefault: () =>
+                        _setDefault(_addresses[index]['id'].toString()),
+                  );
+                },
+              ),
+            ),
     );
   }
 

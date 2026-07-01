@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/routes/app_routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../services/auth_service.dart';
 import '../../../core/widgets/app_notification.dart';
@@ -56,7 +57,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           context: context,
           message: 'Đăng ký thành công, vui lòng kiểm tra email để lấy mã OTP',
         );
-        Navigator.pushReplacementNamed(context, '/otp', arguments: email);
+        Navigator.pushReplacementNamed(context, AppRoutes.otp, arguments: email);
       } else {
         if (!mounted) return;
         AppNotification.showError(

@@ -1,29 +1,32 @@
 import 'package:flutter/material.dart';
 
+import '../../../config/api_config.dart';
+import '../../../core/routes/app_routes.dart';
+import '../../../core/services/api_helpers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../profile/models/user_session.dart';
 
 class UserAvatarMenu extends StatelessWidget {
   final VoidCallback onLogout;
 
-  const UserAvatarMenu({
-    super.key,
-    required this.onLogout,
-  });
+  const UserAvatarMenu({super.key, required this.onLogout});
 
   @override
   Widget build(BuildContext context) {
     final user = UserSession.currentUser;
     final avatar = user?.avatar;
+    final avatarUrl = avatar != null && avatar.isNotEmpty
+        ? buildImageUrl(ApiConfig.getBaseUrl(context), avatar)
+        : null;
 
     return PopupMenuButton<String>(
       tooltip: 'Tài khoản',
       offset: const Offset(0, 54),
       onSelected: (value) {
         if (value == 'profile') {
-          Navigator.pushNamed(context, '/profile');
+          Navigator.pushNamed(context, AppRoutes.profile);
         } else if (value == 'orders') {
-          Navigator.pushNamed(context, '/orders');
+          Navigator.pushNamed(context, AppRoutes.orders);
         } else if (value == 'logout') {
           onLogout();
         }
@@ -38,14 +41,10 @@ class UserAvatarMenu extends StatelessWidget {
               children: [
                 Text(
                   user?.fullName ?? 'Khách hàng',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  user?.email ?? 'Chưa đăng nhập',
-                ),
+                Text(user?.email ?? 'Chưa đăng nhập'),
                 const SizedBox(height: 8),
                 Chip(
                   label: Text(
@@ -92,14 +91,9 @@ class UserAvatarMenu extends StatelessWidget {
       child: CircleAvatar(
         radius: 19,
         backgroundColor: AppColors.gold,
-        backgroundImage: avatar != null && avatar.isNotEmpty
-            ? NetworkImage(avatar)
-            : null,
-        child: avatar == null || avatar.isEmpty
-            ? const Icon(
-          Icons.person,
-          color: Colors.white,
-        )
+        backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl) : null,
+        child: avatarUrl == null
+            ? const Icon(Icons.person, color: Colors.white)
             : null,
       ),
     );

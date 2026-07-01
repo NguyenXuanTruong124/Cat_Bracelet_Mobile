@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/routes/app_routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/app_notification.dart';
 import '../../profile/models/user_session.dart';
@@ -234,7 +235,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         message: 'Đặt hàng thành công',
       );
 
-      Navigator.pushReplacementNamed(context, '/orders');
+      Navigator.pushReplacementNamed(context, AppRoutes.orders);
     } catch (e) {
       if (mounted) {
         AppNotification.showError(

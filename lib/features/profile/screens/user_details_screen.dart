@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../core/routes/app_routes.dart';
 import '../../../core/widgets/app_notification.dart';
 import '../models/app_user.dart';
 import '../models/user_session.dart';
@@ -42,27 +43,30 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
   }
 
   Future<void> _loadProfile() async {
+    final currentContext = context;
     setState(() => _isLoading = true);
-    final user = await UserService.fetchProfile(context);
+    final user = await UserService.fetchProfile(currentContext);
     if (user != null) {
-      UserSession.currentUser = user;
+      await UserSession.setCurrentUser(user);
       _fill(user);
     }
     if (mounted) setState(() => _isLoading = false);
   }
 
   Future<void> _saveProfile() async {
+    final currentContext = context;
     setState(() => _isLoading = true);
     final user = await UserService.saveProfile(
-      context,
+      currentContext,
       fullName: _nameController.text.trim(),
       phone: _phoneController.text.trim(),
       avatar: _avatarController.text.trim(),
     );
     if (user != null) {
-      UserSession.currentUser = user;
+      await UserSession.setCurrentUser(user);
+      if (!mounted) return;
       AppNotification.showSuccess(
-        context: context,
+        context: currentContext,
         message: 'Đã cập nhật thông tin',
       );
     }
@@ -70,6 +74,7 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
   }
 
   Future<void> _uploadAvatar() async {
+    final currentContext = context;
     final picker = ImagePicker();
     final image = await picker.pickImage(
       source: ImageSource.gallery,
@@ -78,11 +83,12 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
     if (image == null) return;
 
     setState(() => _isLoading = true);
-    final success = await UserService.uploadAvatar(context, image);
+    final success = await UserService.uploadAvatar(currentContext, image);
     if (success) {
       await _loadProfile();
+      if (!mounted) return;
       AppNotification.showSuccess(
-        context: context,
+        context: currentContext,
         message: 'Đã tải ảnh đại diện lên thành công',
       );
     }
@@ -105,22 +111,22 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
           MenuTile(
             icon: Icons.notifications_outlined,
             title: 'Thông báo',
-            onTap: () => Navigator.pushNamed(context, '/notifications'),
+            onTap: () => Navigator.pushNamed(context, AppRoutes.notifications),
           ),
           MenuTile(
             icon: Icons.receipt_long_outlined,
             title: 'Đơn hàng của tôi',
-            onTap: () => Navigator.pushNamed(context, '/orders'),
+            onTap: () => Navigator.pushNamed(context, AppRoutes.orders),
           ),
           MenuTile(
             icon: Icons.support_agent_outlined,
             title: 'Hỗ trợ trực tuyến',
-            onTap: () => Navigator.pushNamed(context, '/support'),
+            onTap: () => Navigator.pushNamed(context, AppRoutes.support),
           ),
           MenuTile(
             icon: Icons.location_on_outlined,
             title: 'Địa chỉ giao hàng',
-            onTap: () => Navigator.pushNamed(context, '/addresses'),
+            onTap: () => Navigator.pushNamed(context, AppRoutes.addresses),
           ),
           const Divider(height: 32),
 
@@ -152,7 +158,7 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
 
           // Upload avatar
           OutlinedButton.icon(
-            onPressed: _isLoading ? null : _uploadAvatar,
+            onPressed: _isLoading ? null : () => _uploadAvatar(),
             icon: const Icon(Icons.upload),
             label: const Text('Chọn ảnh đại diện'),
           ),
@@ -165,7 +171,7 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
               foregroundColor: Colors.white,
               minimumSize: const Size.fromHeight(50),
             ),
-            onPressed: _isLoading ? null : _saveProfile,
+            onPressed: _isLoading ? null : () => _saveProfile(),
             icon: _isLoading
                 ? const SizedBox(
                     width: 18,

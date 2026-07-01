@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
 import '../../../config/api_config.dart';
 import '../../../core/services/api_helpers.dart';
 import 'package:flutter/material.dart';
@@ -10,10 +9,7 @@ class CartService {
 
   Future<Map<String, dynamic>?> fetchCart() async {
     final baseUrl = ApiConfig.getBaseUrl(context);
-    final response = await http.get(
-      Uri.parse('$baseUrl/cart'),
-      headers: apiHeaders(),
-    );
+    final response = await apiGet(Uri.parse('$baseUrl/cart'));
     if (response.statusCode == 200) {
       final decoded = jsonDecode(response.body);
       if (decoded is Map<String, dynamic>) return decoded;
@@ -25,34 +21,24 @@ class CartService {
     final baseUrl = ApiConfig.getBaseUrl(context);
 
     if (quantity <= 0) {
-      await http.delete(
-        Uri.parse('$baseUrl/cart/item/$id'),
-        headers: apiHeaders(),
-      );
+      await apiDelete(Uri.parse('$baseUrl/cart/item/$id'));
       return;
     }
 
-    await http.patch(
+    await apiPatch(
       Uri.parse('$baseUrl/cart/item/$id'),
-      headers: apiHeaders(json: true),
+      json: true,
       body: jsonEncode({'quantity': quantity}),
     );
   }
 
   Future<void> removeItem(String id) async {
     final baseUrl = ApiConfig.getBaseUrl(context);
-    await http.delete(
-      Uri.parse('$baseUrl/cart/item/$id'),
-      headers: apiHeaders(),
-    );
+    await apiDelete(Uri.parse('$baseUrl/cart/item/$id'));
   }
 
   Future<void> clearCart() async {
     final baseUrl = ApiConfig.getBaseUrl(context);
-    await http.delete(
-      Uri.parse('$baseUrl/cart/clear'),
-      headers: apiHeaders(),
-    );
+    await apiDelete(Uri.parse('$baseUrl/cart/clear'));
   }
-
 }

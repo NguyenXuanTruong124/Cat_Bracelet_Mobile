@@ -34,7 +34,8 @@ class ProductDetailsService {
       http.get(variantsUrl),
     ]);
 
-    final product = _parseProduct(responses[0].body, responses[0].statusCode) ??
+    final product =
+        _parseProduct(responses[0].body, responses[0].statusCode) ??
         fallbackProduct;
     final variants = _parseVariants(
       responses[1].body,
@@ -51,9 +52,9 @@ class ProductDetailsService {
     required String variantId,
     int quantity = 1,
   }) async {
-    final response = await http.post(
+    final response = await apiPost(
       Uri.parse('$baseUrl/cart/add'),
-      headers: apiHeaders(json: true),
+      json: true,
       body: jsonEncode({'variantId': variantId, 'quantity': quantity}),
     );
 
@@ -68,10 +69,10 @@ class ProductDetailsService {
   }
 
   List<ProductVariants> _parseVariants(
-      String body,
-      int statusCode, {
-        required String productId,
-      }) {
+    String body,
+    int statusCode, {
+    required String productId,
+  }) {
     if (statusCode != 200) return [];
 
     return _decodeList(body)
@@ -87,8 +88,8 @@ class ProductDetailsService {
     }
 
     return variant.mappings.any(
-          (mapping) =>
-      mapping.productId == productId && mapping.product?.status == 'ACTIVE',
+      (mapping) =>
+          mapping.productId == productId && mapping.product?.status == 'ACTIVE',
     );
   }
 

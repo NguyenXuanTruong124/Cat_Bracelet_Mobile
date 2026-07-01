@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/routes/app_routes.dart';
 import '../models/notification_model.dart';
 import '../services/notification_service.dart';
 import '../widgets/notification_tile.dart';
@@ -69,7 +70,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
     if (notification.type == 'ORDER' && notification.relatedId != null) {
       Navigator.pushNamed(
         context,
-        '/order-tracking',
+        AppRoutes.orderTracking,
         arguments: notification.relatedId,
       );
     }

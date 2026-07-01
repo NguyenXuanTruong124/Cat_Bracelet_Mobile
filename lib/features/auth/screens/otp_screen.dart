@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/routes/app_routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../services/auth_service.dart';
 import '../../../core/widgets/app_notification.dart';
@@ -44,7 +45,7 @@ class _OtpScreenState extends State<OtpScreen> {
           context: context,
           message: 'Xác thực thành công! Vui lòng đăng nhập.',
         );
-        Navigator.pushReplacementNamed(context, '/'); // Go back to login
+        Navigator.pushReplacementNamed(context, AppRoutes.login); // Go back to login
       } else {
         if (!mounted) return;
         AppNotification.showError(
