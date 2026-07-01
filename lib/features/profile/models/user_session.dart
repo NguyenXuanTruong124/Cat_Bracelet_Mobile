@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'app_user.dart';
 import '../../../config/api_config.dart';
 import '../../../core/services/api_helpers.dart';
+
 class UserSession {
   static const _accessTokenKey = 'userSession.accessToken';
   static const _refreshTokenKey = 'userSession.refreshToken';
@@ -16,12 +17,36 @@ class UserSession {
   static String? accessToken;
   static String? refreshToken;
 
-  static bool get isLoggedIn => currentUser != null && accessToken != null;
+  static bool get isLoggedIn =>
+      currentUser != null && (accessToken != null || refreshToken != null);
+
+  static Map<String, dynamic> _extractSessionPayload(
+    Map<String, dynamic> json,
+  ) {
+    final payload = <String, dynamic>{};
+
+    final data = json['data'];
+    if (data is Map) {
+      for (final entry in data.entries) {
+        payload[entry.key.toString()] = entry.value;
+      }
+    }
+
+    for (final entry in json.entries) {
+      payload.putIfAbsent(entry.key.toString(), () => entry.value);
+    }
+
+    return payload;
+  }
 
   static Future<void> initialize() async {
     final prefs = await SharedPreferences.getInstance();
     accessToken = prefs.getString(_accessTokenKey);
     refreshToken = prefs.getString(_refreshTokenKey);
+
+    debugPrint(
+      'SESSION_INIT: accessToken=${accessToken?.isNotEmpty == true ? "present" : "missing"}, refreshToken=${refreshToken?.isNotEmpty == true ? "present" : "missing"}',
+    );
 
     final savedUserJson = prefs.getString(_userJsonKey);
     if (savedUserJson != null && savedUserJson.isNotEmpty) {
@@ -29,31 +54,58 @@ class UserSession {
         final userMap = jsonDecode(savedUserJson);
         if (userMap is Map<String, dynamic>) {
           currentUser = AppUser.fromJson(userMap);
+          debugPrint('SESSION_INIT: user restored for ${currentUser?.id}');
         }
-      } catch (_) {
+      } catch (error) {
         currentUser = null;
+        debugPrint('SESSION_INIT: failed to restore user -> $error');
       }
+    } else {
+      debugPrint('SESSION_INIT: no saved user found');
     }
   }
 
   static Future<void> setFromLogin(Map<String, dynamic> json) async {
-    final userJson = json['user'];
-    if (userJson is Map<String, dynamic>) {
-      currentUser = AppUser.fromJson(userJson);
+    final payload = _extractSessionPayload(json);
+    debugPrint('SESSION_LOGIN: payload received -> $payload');
+    final userJson = payload['user'];
+    if (userJson is Map) {
+      currentUser = AppUser.fromJson(
+        Map<String, dynamic>.from(userJson as Map<dynamic, dynamic>),
+      );
     }
-    accessToken = json['accessToken']?.toString();
-    refreshToken = json['refreshToken']?.toString();
+
+    final tokenData = payload['tokens'];
+    if (tokenData is Map) {
+      accessToken =
+          tokenData['accessToken']?.toString() ??
+          tokenData['access_token']?.toString();
+      refreshToken =
+          tokenData['refreshToken']?.toString() ??
+          tokenData['refresh_token']?.toString();
+    } else {
+      accessToken =
+          payload['accessToken']?.toString() ??
+          payload['access_token']?.toString();
+      refreshToken =
+          payload['refreshToken']?.toString() ??
+          payload['refresh_token']?.toString();
+    }
 
     final prefs = await SharedPreferences.getInstance();
-    if (accessToken != null) {
+    if (accessToken != null && accessToken!.isNotEmpty) {
       await prefs.setString(_accessTokenKey, accessToken!);
     }
-    if (refreshToken != null) {
+    if (refreshToken != null && refreshToken!.isNotEmpty) {
       await prefs.setString(_refreshTokenKey, refreshToken!);
     }
     if (currentUser != null) {
       await prefs.setString(_userJsonKey, jsonEncode(currentUser!.toJson()));
     }
+
+    debugPrint(
+      'SESSION_LOGIN: saved session -> user=${currentUser?.id}, accessToken=${accessToken?.isNotEmpty == true ? "present" : "missing"}, refreshToken=${refreshToken?.isNotEmpty == true ? "present" : "missing"}',
+    );
   }
 
   static Future<void> setCurrentUser(AppUser? user) async {
@@ -67,6 +119,7 @@ class UserSession {
   }
 
   static Future<void> clear() async {
+    debugPrint('SESSION_CLEAR: clearing session');
     currentUser = null;
     accessToken = null;
     refreshToken = null;
@@ -99,24 +152,31 @@ class UserSession {
 
   static Future<bool> refreshTokens() async {
     final refreshToken = UserSession.refreshToken;
+    debugPrint('SESSION_REFRESH: starting refresh');
     if (refreshToken == null || refreshToken.isEmpty) {
+      debugPrint('SESSION_REFRESH: missing refresh token');
       return false;
     }
 
     final baseUrl = ApiConfig.cleanBaseUrl;
     if (baseUrl.isEmpty) {
+      debugPrint('SESSION_REFRESH: base URL is empty');
       return false;
     }
 
     try {
+      debugPrint('SESSION_REFRESH: calling $baseUrl/user/refresh-token');
       final response = await http.post(
         Uri.parse('$baseUrl/user/refresh-token'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'refreshToken': refreshToken}),
       );
 
-      if (response.statusCode != 200) {
-        await clear();
+      debugPrint(
+        'SESSION_REFRESH: status=${response.statusCode}, body=${response.body}',
+      );
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        debugPrint('SESSION_REFRESH: refresh failed with non-success status');
         return false;
       }
 
@@ -141,7 +201,7 @@ class UserSession {
           tokenData['refresh_token']?.toString();
 
       if (newAccessToken == null || newRefreshToken == null) {
-        debugPrint('DEBUG: Token refresh payload invalid: $tokenData');
+        debugPrint('SESSION_REFRESH: invalid payload -> $tokenData');
         return false;
       }
 
@@ -150,23 +210,35 @@ class UserSession {
         refreshToken: newRefreshToken,
       );
 
+      debugPrint('SESSION_REFRESH: success');
       return true;
     } catch (error) {
-      await clear();
+      debugPrint('SESSION_REFRESH: exception -> $error');
       return false;
     }
   }
+
   static Future<bool> refreshCurrentUser() async {
-    if (currentUser == null) return false;
+    if (currentUser == null) {
+      debugPrint('SESSION_PROFILE: no current user to refresh');
+      return false;
+    }
 
     final baseUrl = ApiConfig.cleanBaseUrl;
-    if (baseUrl.isEmpty) return false;
+    if (baseUrl.isEmpty) {
+      debugPrint('SESSION_PROFILE: base URL is empty');
+      return false;
+    }
 
     try {
+      debugPrint('SESSION_PROFILE: fetching profile for ${currentUser!.id}');
       final response = await apiGet(
         Uri.parse('$baseUrl/user/profile/${currentUser!.id}'),
       );
 
+      debugPrint(
+        'SESSION_PROFILE: status=${response.statusCode}, body=${response.body}',
+      );
       if (response.statusCode != 200) {
         return false;
       }
@@ -181,8 +253,10 @@ class UserSession {
 
       await setCurrentUser(user);
 
+      debugPrint('SESSION_PROFILE: success');
       return true;
-    } catch (_) {
+    } catch (error) {
+      debugPrint('SESSION_PROFILE: exception -> $error');
       return false;
     }
   }

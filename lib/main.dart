@@ -10,6 +10,7 @@ import 'features/profile/models/user_session.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
+  await UserSession.initialize();
   runApp(const CatBraceletApp());
 }
 

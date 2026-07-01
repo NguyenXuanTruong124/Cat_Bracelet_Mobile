@@ -8,14 +8,12 @@ class SessionManager {
   static final navigatorKey = GlobalKey<NavigatorState>();
 
   static Future<void> logout() async {
+    debugPrint('SESSION_MANAGER: logout requested');
     await UserSession.clear();
 
     final navigator = navigatorKey.currentState;
     if (navigator == null) return;
 
-    navigator.pushNamedAndRemoveUntil(
-      '/login',
-          (route) => false,
-    );
+    navigator.pushNamedAndRemoveUntil('/login', (route) => false);
   }
 }

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:cat_bracelet_mobile/core/services/session_manager.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../../features/profile/models/user_session.dart';
 import '../exceptions/auth_exception.dart';
@@ -32,13 +33,22 @@ Future<http.Response> sendAuthenticatedRequest(
     final response = await request();
 
     if (!retry || (response.statusCode != 401 && response.statusCode != 403)) {
+      if (response.statusCode >= 400) {
+        debugPrint(
+          'AUTH: status=${response.statusCode}, body=${response.body}',
+        );
+      }
       return response;
     }
 
+    debugPrint(
+      'AUTH: received ${response.statusCode}, attempting refresh token',
+    );
     final refreshed = await refreshAccessToken();
+    debugPrint('AUTH: refresh result=$refreshed');
 
     if (!refreshed) {
-      await SessionManager.logout();
+      debugPrint('AUTH: refresh failed after 401/403, keeping session');
       throw const SessionExpiredException();
     }
 

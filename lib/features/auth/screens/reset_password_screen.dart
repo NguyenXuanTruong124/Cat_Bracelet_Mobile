@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/routes/app_routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../services/auth_service.dart';
 import '../../../core/widgets/app_notification.dart';
@@ -57,11 +58,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
     setState(() => _isLoading = true);
     try {
-      final response = await AuthService(context).resetPassword(
-        email: widget.email,
-        otp: otp,
-        newPassword: password,
-      );
+      final response = await AuthService(
+        context,
+      ).resetPassword(email: widget.email, otp: otp, newPassword: password);
 
       if (!mounted) return;
 
@@ -70,7 +69,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
           context: context,
           message: 'Đặt lại mật khẩu thành công. Vui lòng đăng nhập.',
         );
-        Navigator.popUntil(context, (route) => route.isFirst);
+        if (!mounted) return;
+        Navigator.pushNamedAndRemoveUntil(context, AppRoutes.login, (route) => false);
       } else {
         AppNotification.showError(
           context: context,
@@ -79,10 +79,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       }
     } catch (e) {
       if (!mounted) return;
-      AppNotification.showError(
-        context: context,
-        message: 'Lỗi kết nối: $e',
-      );
+      AppNotification.showError(context: context, message: 'Lỗi kết nối: $e');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -109,7 +106,11 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Icon(Icons.verified_user_outlined, size: 64, color: AppColors.gold),
+            const Icon(
+              Icons.verified_user_outlined,
+              size: 64,
+              color: AppColors.gold,
+            ),
             const SizedBox(height: 16),
             Text(
               'Nhập mã OTP đã gửi tới\n${widget.email}',
